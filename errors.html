@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SensorThings API WebSub Plugin Error Page</title>
+</head>
+<body>
+<h1>Errors for the SensorThings API WebSub plugin</h1>
+The SensorThings WebSub plugin implementation supports the W3C WebSub discovery. In certain cases, the discovery does not return the `Link rel="self"` header. To inform about the reason,
+the implementation returns a `Link rel="http://ogc.org/websub/1.0/error"` header where the acutal link points to this HTML page, including the hashtag anchor.
+
+This solution is required because the WebSub discovery may only add `Link` header(s) to the service response. The typical error messaging in the response body is not possible.
+
+<h3>Error Definitions</h3>
+The following errors are defined for the link relation <a href="http://ogc.org/websub/1.0/error" target="_ERROR">http://ogc.org/websub/1.0/error</a> as defined in the OGC SensorThings API WebSub Extension standard<a href="#footnote-1"><sup>[1]</sup></a>:
+
+<h4 id="entityInvalid">#entityInvalid</h4>
+<div>
+    <p>The MQTT topic, resulting from the request URL is invalid.</p>
+</div>
+<h4 id="entityNotAllowed">#entityNotAllowed</h4>
+<div>
+    <p>The MQTT topic, resulting from the request URL is on a disallowed entity.</p>
+</div>
+<h4 id="odataQueryDisabled">#odataQueryDisabled</h4>
+<div>
+    <p>The MQTT topic, resulting from the request URL would include an ODATA query. But, this option is disabled.</p>
+</div>
+<h4 id="odataQueryFilterDisabled">#odataQueryFilterDisabled</h4>
+<div>
+    <p>The MQTT topic, resulting from the request URL would include an ODATA query with the command `$filter`. But, this option is disabled.</p>
+</div>
+<h4 id="odataQueryExpandDisabled">#odataQueryExpandDisabled</h4>
+<div>
+    <p>The MQTT topic, resulting from the request URL would include an ODATA query with the command `$expand`. But, this option is disabled.</p>
+</div>
+<hr>
+<p id="footnote-1"><i>[1] The OGC SensorThings API SWG is currently working on the standard.</i></p>
+</body>
+</html>
