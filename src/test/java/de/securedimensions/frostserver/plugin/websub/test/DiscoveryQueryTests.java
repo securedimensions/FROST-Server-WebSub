@@ -17,11 +17,24 @@
  */
 package de.securedimensions.frostserver.plugin.websub.test;
 
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_EXPAND_DISABLED;
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
+
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -33,20 +46,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_EXPAND_DISABLED;
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
 
 /**
  * Tests for the W3C Discovery for URLs that have a query segment (an ODATA part)

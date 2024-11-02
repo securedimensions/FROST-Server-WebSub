@@ -22,6 +22,14 @@ import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -33,15 +41,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Tests plugin enabled / disabled
@@ -65,7 +64,7 @@ public abstract class ActivationTests extends AbstractTestClass {
 
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
 
-        SERVER_PROPERTIES.put("plugins.websub.hub", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Observations");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
@@ -144,7 +143,7 @@ public abstract class ActivationTests extends AbstractTestClass {
                 Assertions.assertTrue(hubLink == null, "WebSub plugin disabled - no rel=hub link");
                 Assertions.assertTrue(selfLink == null, "WebSub plugin disabled - no rel=self link");
             } else {
-                Assertions.assertTrue(hubLink.equalsIgnoreCase(SERVER_PROPERTIES.get("plugins.websub.hub")), "Link rel=hub equals configured hub");
+                Assertions.assertTrue(hubLink.equalsIgnoreCase(SERVER_PROPERTIES.get("plugins.websub.hubUrl")), "Link rel=hub equals configured hub");
                 Assertions.assertTrue(selfLink.equalsIgnoreCase(url));
             }
         }

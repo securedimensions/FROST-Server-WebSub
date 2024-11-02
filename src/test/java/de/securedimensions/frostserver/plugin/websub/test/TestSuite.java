@@ -28,25 +28,25 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  */
 
 @SelectClasses({
-        ActivationTests.DisabledTest.class,
-        ActivationTests.EnabledTest.class,
-        DiscoveryPathTests.DiscoveryPathTestsAll.class,
-        DiscoveryPathTests.DiscoveryPathTestSTA00.class,
-        DiscoveryPathTests.DiscoveryPathTestSTA01.class,
-        DiscoveryPathTests.DiscoveryPathTestSTA10.class,
-        DiscoveryPathTests.DiscoveryPathTestSTA11.class,
-        DiscoveryPathTests.DiscoveryPathTestMD00.class,
-        DiscoveryPathTests.DiscoveryPathTestMD01.class,
-        DiscoveryPathTests.DiscoveryPathTestMD10.class,
-        DiscoveryPathTests.DiscoveryPathTestMD11.class,
-        DiscoveryPathTests.DiscoveryPathTestSTAplus00.class,
-        DiscoveryPathTests.DiscoveryPathTestSTAplus01.class,
-        DiscoveryPathTests.DiscoveryPathTestSTAplus10.class,
-        DiscoveryPathTests.DiscoveryPathTestSTAplus11.class,
-        DiscoveryQueryTests.DiscoveryWithQuery00.class,
-        DiscoveryQueryTests.DiscoveryWithQuery01.class,
-        DiscoveryQueryTests.DiscoveryWithQuery10.class,
-        DiscoveryQueryTests.DiscoveryWithQuery11.class
+    ActivationTests.DisabledTest.class,
+    ActivationTests.EnabledTest.class,
+    DiscoveryPathTests.DiscoveryPathTestsAll.class,
+    DiscoveryPathTests.DiscoveryPathTestSTA00.class,
+    DiscoveryPathTests.DiscoveryPathTestSTA01.class,
+    DiscoveryPathTests.DiscoveryPathTestSTA10.class,
+    DiscoveryPathTests.DiscoveryPathTestSTA11.class,
+    DiscoveryPathTests.DiscoveryPathTestMD00.class,
+    DiscoveryPathTests.DiscoveryPathTestMD01.class,
+    DiscoveryPathTests.DiscoveryPathTestMD10.class,
+    DiscoveryPathTests.DiscoveryPathTestMD11.class,
+    DiscoveryPathTests.DiscoveryPathTestSTAplus00.class,
+    DiscoveryPathTests.DiscoveryPathTestSTAplus01.class,
+    DiscoveryPathTests.DiscoveryPathTestSTAplus10.class,
+    DiscoveryPathTests.DiscoveryPathTestSTAplus11.class,
+    DiscoveryQueryTests.DiscoveryWithQuery00.class,
+    DiscoveryQueryTests.DiscoveryWithQuery01.class,
+    DiscoveryQueryTests.DiscoveryWithQuery10.class,
+    DiscoveryQueryTests.DiscoveryWithQuery11.class
 })
 @Suite
 @Testcontainers

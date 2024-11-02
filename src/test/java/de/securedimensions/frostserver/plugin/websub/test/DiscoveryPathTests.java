@@ -17,11 +17,21 @@
  */
 package de.securedimensions.frostserver.plugin.websub.test;
 
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.*;
+
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -32,17 +42,6 @@ import org.apache.http.entity.StringEntity;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.*;
 
 /**
  * Tests for the W3C Discovery for URLs that have no query segment (no ODATA part)
@@ -106,7 +105,8 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
 
             // Create a Party for testing
-            createParty();
+            if (SERVER_PROPERTIES.get("plugins.staplus.enable").equalsIgnoreCase("true"))
+                createParty();
         } catch (MalformedURLException ex) {
             LOGGER.error("Failed to create URL", ex);
         } catch (IOException ex) {
@@ -317,7 +317,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestSTA01() {
@@ -383,7 +383,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestSTA11() {
@@ -449,7 +449,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD01() {
@@ -515,7 +515,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD11() {

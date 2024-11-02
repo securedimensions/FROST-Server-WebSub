@@ -17,6 +17,13 @@
  */
 package de.securedimensions.frostserver.plugin.websub;
 
+import static de.fraunhofer.iosb.ilt.frostserver.service.PluginManager.PATH_WILDCARD;
+import static de.fraunhofer.iosb.ilt.frostserver.service.PluginResultFormat.FORMAT_NAME_EMPTY;
+import static de.fraunhofer.iosb.ilt.frostserver.service.RequestTypeUtils.*;
+import static de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings.TAG_SERVICE_ROOT_URL;
+import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.CONTENT_TYPE_APPLICATION_JSONPATCH;
+import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FORMAT;
+
 import de.fraunhofer.iosb.ilt.frostserver.path.Version;
 import de.fraunhofer.iosb.ilt.frostserver.service.*;
 import de.fraunhofer.iosb.ilt.frostserver.settings.ConfigDefaults;
@@ -26,15 +33,7 @@ import de.fraunhofer.iosb.ilt.frostserver.settings.annotation.DefaultValue;
 import de.fraunhofer.iosb.ilt.frostserver.settings.annotation.DefaultValueBoolean;
 import de.fraunhofer.iosb.ilt.frostserver.util.HttpMethod;
 import de.fraunhofer.iosb.ilt.frostserver.util.StringHelper;
-
 import java.util.*;
-
-import static de.fraunhofer.iosb.ilt.frostserver.service.PluginManager.PATH_WILDCARD;
-import static de.fraunhofer.iosb.ilt.frostserver.service.PluginResultFormat.FORMAT_NAME_EMPTY;
-import static de.fraunhofer.iosb.ilt.frostserver.service.RequestTypeUtils.*;
-import static de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings.TAG_SERVICE_ROOT_URL;
-import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.CONTENT_TYPE_APPLICATION_JSONPATCH;
-import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FORMAT;
 
 /**
  *
