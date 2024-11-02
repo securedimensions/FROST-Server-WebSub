@@ -1,0 +1,55 @@
+/*
+ * Copyright (C) 2024 Secure Dimensions GmbH, D-81377
+ * Munich, Germany.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package de.securedimensions.frostserver.plugin.websub.test;
+
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+/**
+ * TestSuite for the executing all tests regarding WebSub Discovery.
+ *
+ * @author Andreas Matheus
+ */
+
+@SelectClasses({
+        ActivationTests.DisabledTest.class,
+        ActivationTests.EnabledTest.class,
+        DiscoveryPathTests.DiscoveryPathTestsAll.class,
+        DiscoveryPathTests.DiscoveryPathTestSTA00.class,
+        DiscoveryPathTests.DiscoveryPathTestSTA01.class,
+        DiscoveryPathTests.DiscoveryPathTestSTA10.class,
+        DiscoveryPathTests.DiscoveryPathTestSTA11.class,
+        DiscoveryPathTests.DiscoveryPathTestMD00.class,
+        DiscoveryPathTests.DiscoveryPathTestMD01.class,
+        DiscoveryPathTests.DiscoveryPathTestMD10.class,
+        DiscoveryPathTests.DiscoveryPathTestMD11.class,
+        DiscoveryPathTests.DiscoveryPathTestSTAplus00.class,
+        DiscoveryPathTests.DiscoveryPathTestSTAplus01.class,
+        DiscoveryPathTests.DiscoveryPathTestSTAplus10.class,
+        DiscoveryPathTests.DiscoveryPathTestSTAplus11.class,
+        DiscoveryQueryTests.DiscoveryWithQuery00.class,
+        DiscoveryQueryTests.DiscoveryWithQuery01.class,
+        DiscoveryQueryTests.DiscoveryWithQuery10.class,
+        DiscoveryQueryTests.DiscoveryWithQuery11.class
+})
+@Suite
+@Testcontainers
+public class TestSuite {
+
+}
