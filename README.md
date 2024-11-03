@@ -101,6 +101,12 @@ To enable CORS such that a Javascript based Web-App can access the `Link` header
 
 * **http.cors.exposed_headers=Location,Link**: **Note:** It is important to also add `Location` as that is the default.
 
+According to the W3C WebSub Recommendation, section §4 Discovery, the plugin must return the Link headers for HTTP `GET` and `HEAD` methods.
+In order to allow the discovery via HTTP HEAD from a Javascript-based Web-App, the FROST-Server CORS configuration must include
+the literal `HEAD` in the `http.cors.allowed.methods` configuration setting.
+
+* **http.cors.allowed.methods=HEAD,...:** **Note:** It is important to add the otherwise default methods in this list.
+
 ## Testing
 **Note:** Tests are only executed for the SensorThings V1.1. There are no different tests needed for V1.0.
 
