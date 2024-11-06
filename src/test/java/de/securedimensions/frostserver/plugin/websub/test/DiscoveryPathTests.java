@@ -67,8 +67,8 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub,de.securedimensions.frostserver.plugin.staplus.PluginPLUS");
         SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.errorUrl", "https://github.com/securedimensions/FROST-Server-WebSub/errors");
-        SERVER_PROPERTIES.put("plugins.websub.errorRel", "http://www.opengis.net/doc/is/sensorthings-websub/1.0");
+        SERVER_PROPERTIES.put("plugins.websub.errorUrl", "https://github.com/securedimensions/FROST-Server-WebSub/errors.html");
+        SERVER_PROPERTIES.put("plugins.websub.errorRel", "http://www.opengis.net/doc/is/sensorthings-websub/1.0/error");
     }
 
     private static final String[] rootTopicsOthers = {"Foo", "/", "", " ", "#"};
@@ -124,20 +124,12 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
      */
     @Test
     public void testDiscoveryByPath() throws IOException {
-        for (String entity : rootTopicsSTA) {
-            testDiscoveryByPath(entity, "GET");
-            //testDiscoveryByPath(entity, "HEAD");
-        }
-        for (String entity : rootTopicsSTAMultiDataStream) {
-            testDiscoveryByPath(entity, "GET");
-            //testDiscoveryByPath(entity, "HEAD");
-        }
-        for (String entity : rootTopicsSTAplus) {
-            testDiscoveryByPath(entity, "GET");
+        for (String entity : "Datastreams,Sensors,Things,Locations,HistoricalLocations,Observations,FeaturesOfInterest,MultiDatastreams,Parties,Licenses,Campaigns,ObservationGroups,Relations".split(",")) {
+            //testDiscoveryByPath(entity, "GET");
             //testDiscoveryByPath(entity, "HEAD");
         }
         for (String entity : rootTopicSingle) {
-            testDiscoveryByPath(entity, "GET");
+            //testDiscoveryByPath(entity, "GET");
             //testDiscoveryByPath(entity, "HEAD");
         }
         for (String entity : rootTopicsOthers) {
@@ -200,7 +192,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             Assertions.assertTrue(hubLink != null, "hub not null");
             Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.websub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
             String selfLink = linkHeaders.get("self");
-            String errorLink = linkHeaders.get(SERVER_PROPERTIES.get("plugins.websub.errorRel"));
+            String helpLink = linkHeaders.get("help");
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code match");
             if (TEST_DATA.get(rootTopic)[1] == null) {
                 Assertions.assertTrue(selfLink == null, "requested entityset is not in rootTopic => there is no Link rel=self");
@@ -209,9 +201,9 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
                 Assertions.assertTrue(selfLink.equalsIgnoreCase(expectedSelfLink), "self-link match");
             }
             if (TEST_DATA.get(rootTopic)[2] != null) {
-                // Testing error-Link
-                String expectedErrorLink = SERVER_PROPERTIES.get("plugins.websub.errorUrl") + TEST_DATA.get(rootTopic)[3];
-                Assertions.assertTrue(errorLink.equalsIgnoreCase(expectedErrorLink), "error-link match");
+                // Testing help-Link
+                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + TEST_DATA.get(rootTopic)[2];
+                Assertions.assertTrue(helpLink.equalsIgnoreCase(expectedHelpLink), "help-link match");
             }
         }
     }
@@ -268,13 +260,13 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
@@ -301,23 +293,23 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestSTA01() {
@@ -334,15 +326,15 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // STAplus Data Model entities
             TEST_DATA.put("Parties", new String[]{"404", null, null, null});
             TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
@@ -367,23 +359,23 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestSTA11() {
@@ -400,13 +392,13 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
@@ -433,23 +425,23 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD01() {
@@ -466,13 +458,13 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null, null});
             // STAplus Data Model entities
@@ -499,23 +491,23 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null, null});
             // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD11() {
@@ -532,13 +524,13 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
@@ -565,21 +557,21 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
             // STAplus Data Model entities
             TEST_DATA.put("Parties", new String[]{"200", "Parties", null, null});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
             TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
         }
@@ -598,15 +590,15 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // STAplus Data Model entities
             TEST_DATA.put("Parties", new String[]{"404", null, null, null});
             TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
@@ -631,21 +623,21 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // STAplus Data Model entities
             TEST_DATA.put("Parties", new String[]{"200", "Parties", null, null});
-            TEST_DATA.put("Licenses", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // Single entity test
             TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
         }

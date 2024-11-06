@@ -1,15 +1,19 @@
 # FROST-Server-WebSub
-This implementation is a plugin for the FROST-Server to support a SensorThings API WebSub Hub discovery. This plugin is therefore compliant with [W3C WebSub, §4. Discovery](https://www.w3.org/TR/websub/#discovery).
+This implementation is a plugin for the FROST-Server to support a SensorThings API WebSub Hub discovery. 
+This plugin is therefore compliant with [W3C WebSub, §4. Discovery](https://www.w3.org/TR/websub/#discovery).
 
 In a nutshell, compliance means that this plugin determines 
 * when to return `Link` headers with `rel="hub"` and `rel="self"`
 * what the value for the `rel="self"` link shall be
 
+In addition, this plugin returns a `Link` header with `rel="help"` if no `rel="self"` Link header can be returned.
+This is done to support the user understanding, why no self-link was returned.
+
 The overall logic of the WebSub plugin is illustrated in the figure below.
 
 ![Processing Logic](Logic.png "Processing Logic")
 
-If the plugin is disabled, no `Link` header is exposed. The same is true for any HTTP request methods but `HEAD` and `GET`.
+If the plugin is disabled, no WebSub `Link` header is exposed. The same is true for any HTTP request methods but `HEAD` and `GET`.
 If the plugin is enabled, the `Link rel="hub"` header is always returned.
 
 For further processing, the plugin uses the `rootTopic` configuration. A `rootTopic` is the name of the EntitySet that follows the version information in the URL.
@@ -24,10 +28,11 @@ Next, the plugin checks if `$filter` and `$expand` are included in the ODATA seg
 
 The WebSub plugin does not adapt the `Link rel="self"`. Either the `Link rel="self"` contains the original request URL or the `Link rel="self"` header is not returned.
 
-W3C WebSub does not specify how a discovery error is returned. To notify a user (or a client program) why the `Link rel="self"` header is not returned, this plugin returns a link to the error description as a `Link` header.
-The plugin returns a `Link` header in the following format `<URL to error>#<error no.>; rel="http://ogc.org/websub/1.0/error"`.
-The value for the `rel` is defined in the OGC SensorThings API WebSub Extension.
-The `<URL to error>` points to the error page for the WebSub plugin and the `anchor` value points to the section of the error page, applicable to the error.
+W3C WebSub does not specify how a discovery additional information why no `Link rel="self"` is returned. 
+To inform a user (or a client program) why the `Link rel="self"` header is not returned, this plugin returns a 
+`Link` with `rel="help"` plus a URL to the help description as a `Link` header.
+The plugin returns a `Link` header in the following format `<URL to error>#<identifier>; rel="help"`.
+The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
 The deployment of the WebSub plugin can be integrated into a working deployment of the FROST-Server. You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
@@ -91,10 +96,8 @@ As described in the [FROST-Server Plugin documentation](https://fraunhoferiosb.g
   This is a FROST-Server configuration directive. Set to `true` enables an MQTT to include the ODATA command `$expand`. Default: `true`.
 * **plugins.websub.hubUrl:**
   This is the URL to the WebSub Hub that functions as the Publisher.
-* **plugins.websub.errorUrl:**
-  This URL resolves to the error page.
-* **plugins.websub.errorRel:**
-  This is the definition for the error relationship as defined in the SensorThings API WebSub Extension standard.
+* **plugins.websub.helpUrl:**
+  This URL resolves to the help page.
 
 Because a SensorThings API service returns data in the JSON format only, this plugin returns the `Link` information as HTTP response headers.
 To enable CORS such that a Javascript based Web-App can access the `Link` headers requires that the `Link` header is listed in the `access-control-expose-headers` response header.
@@ -132,7 +135,7 @@ Four different test cases are defined depending on the root topic:
 * `Other` = {`Foo`, `/`, ``, ` `, `#`} is concerned with the discovery tests for some other entities that are not one of the above
 
 For each request to a valid entityset that is not included in `plugins.websub.rootTopics`, the plugin does not return a `rel="self"` Link header.
-Instead, the plugin returns the `rel="http://ogc.org/websub/1.0/error"` header to inform about the error.
+Instead, the plugin returns the `rel="help"` header to inform about the reason for the missing self-link.
 
 For any service request where root entity does not exist, the service returns a HTTP status code 404. Such a response naturally does not contain any WebSub link headers.
 
@@ -183,13 +186,13 @@ Each of these test cases have to be tested by starting a new SensorThings servic
 | DiscoveryWithQuery11  |  .../Observations?$expand=Datastream  |       true       |       true       | [^37]           |
 
 All test cases must return the `Link rel="hub"` header. In addition, the following Link header is returned:
-[^30]: `Link  <plugins.websub.errorUrl#odataQueryFilterDisabled>; rel="<plugins.websub.errorRel>"`
-[^31]: `Link  <plugins.websub.errorUrl#odataQueryExpandDisabled>; rel="<plugins.websub.errorRel>"`
-[^32]: `Link  <plugins.websub.errorUrl#odataQueryFilterDisabled>; rel="<plugins.websub.errorRel>"`
+[^30]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
+[^31]: `Link  <plugins.websub.helpUrl#odataQueryExpandDisabled>; rel="help"`
+[^32]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
 [^33]: `Link  <...>; rel="self"`
 [^34]: `Link  <...>; rel="self"`
-[^35]: `Link  <plugins.websub.errorUrl#odataQueryExpandDisabled>; rel="<plugins.websub.errorRel>"`
-[^36]: `Link  <plugins.websub.errorUrl#odataQueryFilterDisabled>; rel="<plugins.websub.errorRel>"`
+[^35]: `Link  <plugins.websub.helpUrl#odataQueryExpandDisabled>; rel="help"`
+[^36]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
 [^37]: `Link  <...>; rel="self"`
 [^38]: `Link  <...>; rel="self"`
 

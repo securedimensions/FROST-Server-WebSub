@@ -24,6 +24,7 @@ import static de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings.TAG_SERVI
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.CONTENT_TYPE_APPLICATION_JSONPATCH;
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FORMAT;
 
+import de.fraunhofer.iosb.ilt.frostserver.model.EntityType;
 import de.fraunhofer.iosb.ilt.frostserver.path.Version;
 import de.fraunhofer.iosb.ilt.frostserver.service.*;
 import de.fraunhofer.iosb.ilt.frostserver.settings.ConfigDefaults;
@@ -50,29 +51,17 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     @DefaultValueBoolean(false)
     public static final String TAG_ALLOW_ODATA_QUERY = "websub.enable.odataQuery";
 
-    @DefaultValueBoolean(false)
-    public static final String TAG_ENABLE_MDS_MODEL = "multiDatastream.enable";
-
-    @DefaultValueBoolean(false)
-    public static final String TAG_ENABLE_STAPLUS = "staplus.enable";
     @DefaultValue("")
     public static final String TAG_HUB_URL = "websub.hubUrl";
 
     @DefaultValue("/error")
-    public static final String TAG_ERROR_URL = "websub.errorUrl";
+    public static final String TAG_HELP_URL = "websub.helpUrl";
 
-    @DefaultValue("http://ogc.org/websub/1.0/error")
-    public static final String TAG_ERROR_REL = "websub.errorRel";
-
-    public static final String TAG_ERROR_ODATA_QUERY_DISABLED = "#odataQueryDisabled";
-    public static final String TAG_ERROR_ODATA_FILTER_DISABLED = "#odataQueryFilterDisabled";
-    public static final String TAG_ERROR_ODATA_EXPAND_DISABLED = "#odataQueryExpandDisabled";
-    public static final String TAG_ERROR_ENTITY_INVALID = "#entityInvalid";
-    public static final String TAG_ERROR_ENTITY_NOT_ALLOWED = "#entityNotAllowed";
-
-    public static final ArrayList<String> rootTopicsSTA = new ArrayList<>(List.of(new String[]{"Datastreams", "Sensors", "Things", "Locations", "HistoricalLocations", "Observations", "FeaturesOfInterest"}));
-    public static final ArrayList<String> rootTopicsSTAMultiDataStream = new ArrayList<>(List.of(new String[]{"MultiDatastreams"}));
-    public static final ArrayList<String> rootTopicsSTAplus = new ArrayList<>(List.of(new String[]{"Parties", "Licenses", "Campaigns", "ObservationGroups", "Relations"}));
+    public static final String TAG_ERROR_ODATA_QUERY_DISABLED = "odataQueryDisabled";
+    public static final String TAG_ERROR_ODATA_FILTER_DISABLED = "odataQueryFilterDisabled";
+    public static final String TAG_ERROR_ODATA_EXPAND_DISABLED = "odataQueryExpandDisabled";
+    public static final String TAG_ERROR_ENTITY_INVALID = "entityInvalid";
+    public static final String TAG_ERROR_ENTITY_NOT_ALLOWED = "entityNotAllowed";
 
     private static final String REQUIREMENT_WEBSUB = "https://github.com/securedimensions/FROST-Server-WebSub";
 
@@ -87,15 +76,10 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     // Default is set by FROST-Server
     private boolean allowFilter, allowExpand;
 
-    @DefaultValueBoolean(false)
-    private boolean enableMD;
-
-    @DefaultValueBoolean(false)
-    private boolean enableSTAplus;
     private String hubUrl;
 
     private ArrayList<String> rootTopics;
-    private String rootUrl, errorUrl, errorRel;
+    private String rootUrl, helpUrl;
 
     @Override
     public InitResult init(CoreSettings settings) {
@@ -105,16 +89,14 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         if (!enabled) {
             return InitResult.INIT_OK;
         }
-        enableMD = pluginSettings.getBoolean(TAG_ENABLE_MDS_MODEL, getClass());
-        enableSTAplus = pluginSettings.getBoolean(TAG_ENABLE_STAPLUS, getClass());
         allowOdataQuery = pluginSettings.getBoolean(TAG_ALLOW_ODATA_QUERY, getClass());
         allowFilter = settings.getMqttSettings().isAllowMqttFilter();
         allowExpand = settings.getMqttSettings().isAllowMqttExpand();
         rootUrl = settings.getSettings().get(TAG_SERVICE_ROOT_URL);
         rootUrl = (rootUrl.endsWith("/")) ? rootUrl.substring(0, rootUrl.length() - 1) : rootUrl;
-        errorUrl = pluginSettings.get(TAG_ERROR_URL, getClass());
-        errorUrl = (errorUrl.endsWith("/")) ? errorUrl.substring(0, errorUrl.length() - 1) : errorUrl;
-        errorRel = pluginSettings.get(TAG_ERROR_REL, getClass());
+        helpUrl = pluginSettings.get(TAG_HELP_URL, getClass());
+        helpUrl = (helpUrl.endsWith("/")) ? helpUrl.substring(0, helpUrl.length() - 1) : helpUrl;
+        helpUrl = helpUrl + "#";
         hubUrl = pluginSettings.get(TAG_HUB_URL, getClass());
         rootTopics = new ArrayList<>(Arrays.asList(pluginSettings.get(TAG_ROOT_TOPICS, "-").split(",")));
         if (enabled) {
@@ -199,11 +181,10 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         if (odataQuery != null) {
             expandPresent = odataQuery.contains("expand=");
         }
-        boolean topicValid = isValidEntity(rootTopicsSTA, entityName);
-        if (enableMD && isValidEntity(rootTopicsSTAMultiDataStream, entityName))
-            topicValid = true;
-        else if (enableSTAplus && isValidEntity(rootTopicsSTAplus, entityName))
-            topicValid = true;
+
+        EntityType et = settings.getModelRegistry().getEntityTypeForName(entityName);
+        // True if the entityName is from the data model entities that are activated
+        boolean validEntity = (et != null);
 
         if (allowOdataQuery && (request.getUrlQuery() != null)) {
             // URL compliant for the odata query values:  "," -> "%2C" and " " -> "%20"
@@ -219,39 +200,44 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
                 request.addParameterIfAbsent(REQUEST_PARAM_FORMAT, FORMAT_NAME_EMPTY);
                 return mainService.execute(request, response);
             case WEBSUB:
-                if (topicValid && isValidEntity(rootTopics, entityName)) {
+                if (validEntity && isValidEntity(rootTopics, entityName)) {
                     if (!allowOdataQuery && queryPresent) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + TAG_ERROR_ODATA_QUERY_DISABLED, errorRel));
+                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_QUERY_DISABLED));
                     } else if (allowOdataQuery && (!allowFilter && filterPresent)) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + TAG_ERROR_ODATA_FILTER_DISABLED, errorRel));
+                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_FILTER_DISABLED));
                     } else if (allowOdataQuery && (!allowExpand && expandPresent)) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + TAG_ERROR_ODATA_EXPAND_DISABLED, errorRel));
+                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_EXPAND_DISABLED));
                     } else {
                         linkHeaders.add("<%s>; rel=\"self\"".formatted(topicUrl));
                     }
-                } else if (!topicValid) {
-                    linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + TAG_ERROR_ENTITY_INVALID, errorRel));
+                } else if (!validEntity) {
+                    linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_INVALID));
                 } else if (!isValidEntity(rootTopics, entityName)) {
-                    linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + TAG_ERROR_ENTITY_NOT_ALLOWED, errorRel));
+                    linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_NOT_ALLOWED));
                 }
                 return response.addHeaders("Link", linkHeaders);
             case READ:
-                if (topicValid && isValidEntity(rootTopics, entityName)) {
-                    if (!allowOdataQuery && queryPresent) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + "#odataQueryDisabled", errorRel));
-                    } else if (allowOdataQuery && (!allowFilter && filterPresent)) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + "#odataQueryFilterDisabled", errorRel));
-                    } else if (allowOdataQuery && (!allowExpand && expandPresent)) {
-                        linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + "#odataQueryExpandDisabled", errorRel));
+                if (validEntity) {
+                    if (isValidEntity(rootTopics, entityName)) {
+                        if (!allowOdataQuery && queryPresent) {
+                            linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_QUERY_DISABLED));
+                        } else if (allowOdataQuery && (!allowFilter && filterPresent) && (!allowExpand && expandPresent)) {
+                            linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_FILTER_DISABLED));
+                            linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_EXPAND_DISABLED));
+                        } else if (allowOdataQuery && (!allowFilter && filterPresent)) {
+                            linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_FILTER_DISABLED));
+                        } else if (allowOdataQuery && (!allowExpand && expandPresent)) {
+                            linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_EXPAND_DISABLED));
+                        } else {
+                            linkHeaders.add("<%s>; rel=\"self\"".formatted(topicUrl));
+                        }
                     } else {
-                        linkHeaders.add("<%s>; rel=\"self\"".formatted(topicUrl));
+                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_NOT_ALLOWED));
                     }
-                } else if (!isValidEntity(rootTopics, entityName)) {
-                    linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + "#entityNotAllowed", errorRel));
                 }
             default:
-                if (!topicValid) {
-                    linkHeaders.add("<%s>; rel=\"%s\"".formatted(errorUrl + "#entityInvalid", errorRel));
+                if (!validEntity) {
+                    linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_INVALID));
                 }
                 return mainService.execute(request, response.addHeaders("Link", linkHeaders));
         }

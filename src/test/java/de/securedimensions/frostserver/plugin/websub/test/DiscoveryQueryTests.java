@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -69,8 +70,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Observations");
-        SERVER_PROPERTIES.put("plugins.websub.errorUrl", "https://github.com/securedimensions/FROST-Server-WebSub/errors");
-        SERVER_PROPERTIES.put("plugins.websub.errorRel", "http://www.opengis.net/doc/is/sensorthings-websub/1.0");
+        SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
@@ -120,7 +120,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
     public void testDiscoveryWithQuery() throws IOException {
         for (String key : TEST_DATA.keySet()) {
             testDiscoveryWithQuery(key, "GET");
-            //testDiscoveryWithQuery(key, "HEAD");
+            testDiscoveryWithQuery(key, "HEAD");
         }
     }
 
@@ -134,8 +134,11 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             for (HeaderElement element : link.getElements()) {
                 Matcher matcher = Pattern.compile("<(.*)>; .*rel=(.*)").matcher(element.toString());
                 if (matcher.find())
-                    result.put(matcher.group(2), matcher.group(1));
-
+                    if (result.containsKey(matcher.group(2))) {
+                        String value = result.get(matcher.group(2));
+                        result.put(matcher.group(2), value + "," + matcher.group(1));
+                    } else
+                        result.put(matcher.group(2), matcher.group(1));
             }
         }
         return result;
@@ -160,7 +163,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             Assertions.assertTrue(hubLink != null, "hub not null");
             Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.websub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
             String selfLink = linkHeaders.get("self");
-            String errorLink = linkHeaders.get(SERVER_PROPERTIES.get("plugins.websub.errorRel"));
+            String helpLink = linkHeaders.get("help");
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code match");
             if (TEST_DATA.get(key)[1] == null) {
                 // No self-link
@@ -171,9 +174,12 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
                 Assertions.assertTrue(selfLink.equalsIgnoreCase(expectedSelfLink), "self-link match");
             }
             if (TEST_DATA.get(key)[2] != null) {
-                // Testing error-Link
-                String expectedErrorLink = SERVER_PROPERTIES.get("plugins.websub.errorUrl") + TEST_DATA.get(key)[3];
-                Assertions.assertTrue(errorLink.equalsIgnoreCase(expectedErrorLink), "error-link match");
+                String[] links = TEST_DATA.get(key)[2].split(",");
+                for (int ix = 0; ix < links.length; ix++) {
+                    links[ix] = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + links[ix];
+                }
+                for (String link : links)
+                    Assertions.assertTrue(Arrays.asList(links).contains(link), "help-link match");
             }
         }
     }
@@ -196,8 +202,9 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
 
-            TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ODATA_FILTER_DISABLED});
-            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ODATA_EXPAND_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", null, TAG_ERROR_ODATA_FILTER_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", null, TAG_ERROR_ODATA_EXPAND_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream&$filter=result gt 30"), new String[]{"200", null, TAG_ERROR_ODATA_EXPAND_DISABLED + "," + TAG_ERROR_ODATA_FILTER_DISABLED});
         }
 
         public DiscoveryWithQuery00() {
@@ -213,8 +220,9 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
 
-            TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ODATA_FILTER_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", null, TAG_ERROR_ODATA_FILTER_DISABLED});
             TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", "Observations?$expand=Datastream", null, null});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream&$filter=result gt 30"), new String[]{"200", null, TAG_ERROR_ODATA_FILTER_DISABLED});
         }
 
         public DiscoveryWithQuery01() {
@@ -231,7 +239,8 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
 
             TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", "Observations?$filter=result%20gt%2030", null, null});
-            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", null, "http://www.opengis.net/doc/is/sensorthings-websub/1.0", TAG_ERROR_ODATA_EXPAND_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", null, TAG_ERROR_ODATA_EXPAND_DISABLED});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream&$filter=result gt 30"), new String[]{"200", null, TAG_ERROR_ODATA_EXPAND_DISABLED});
         }
 
         public DiscoveryWithQuery10() {
@@ -249,6 +258,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
 
             TEST_DATA.put("Observations?" + URLEncoder.encode("$filter=result gt 30"), new String[]{"200", "Observations?$filter=result%20gt%2030", null, null});
             TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream"), new String[]{"200", "Observations?$expand=Datastream", null, null});
+            TEST_DATA.put("Observations?" + URLEncoder.encode("$expand=Datastream&$filter=result gt 30"), new String[]{"200", "$expand=Datastream&$filter=result gt 30", null});
         }
 
         public DiscoveryWithQuery11() {
