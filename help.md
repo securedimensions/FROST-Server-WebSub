@@ -8,26 +8,26 @@ This solution is required because the WebSub discovery may only add `Link` heade
 ## Help Definitions
 The following tags are defined for the `Link rel="help"` header:
 
-<a name="entityInvalid"></a>
+<a id="entityInvalid"></a>
 ### #entityInvalid
 The MQTT topic, resulting from the request URL is invalid.
 
-<a name="entityNotAllowed"></a>
+<a id="entityNotAllowed"></a>
 ### #entityNotAllowed
 
 The MQTT topic, resulting from the request URL is on a disallowed entity.
 
-<a name="odataQueryDisabled"></a>
+<a id="odataQueryDisabled"></a>
 ### #odataQueryDisabled
 
 The MQTT topic, resulting from the request URL would include an ODATA query. But, this option is disabled.
 
-<a name="odataQueryFilterDisabled"></a>
+<a id="odataQueryFilterDisabled"></a>
 ### #odataQueryFilterDisabled
 
 The MQTT topic, resulting from the request URL would include an ODATA query with the command `$filter`. But, this option is disabled.
 
-<a name="odataQueryFilterDisabled"></a>
+<a id="odataQueryFilterDisabled"></a>
 ### #odataQueryFilterDisabled
 
 The MQTT topic, resulting from the request URL would include an ODATA query with the command `$expand`. But, this option is disabled.
