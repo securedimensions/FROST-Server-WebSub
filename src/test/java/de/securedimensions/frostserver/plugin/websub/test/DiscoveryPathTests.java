@@ -17,7 +17,7 @@
  */
 package de.securedimensions.frostserver.plugin.websub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.*;
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ENTITY_NOT_ALLOWED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -62,26 +62,27 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
     static {
 
         SERVER_PROPERTIES.put("persistence.idGenerationMode", "ServerAndClientGenerated");
+        SERVER_PROPERTIES.put("plugins.coreModel.enable", "true");
+        SERVER_PROPERTIES.put("plugins.coreModel.idType", "LONG");
         SERVER_PROPERTIES.put("mqtt.Enabled", "false");
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
-        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub,de.securedimensions.frostserver.plugin.staplus.PluginPLUS");
+        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
         SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.errorUrl", "https://github.com/securedimensions/FROST-Server-WebSub/errors.html");
-        SERVER_PROPERTIES.put("plugins.websub.errorRel", "http://www.opengis.net/doc/is/sensorthings-websub/1.0/error");
+        SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help.html");
     }
 
     private static final String[] rootTopicsOthers = {"Foo", "/", "", " ", "#"};
-    private static final String[] rootTopicSingle = {"Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')"};
+    private static final String[] rootTopicSingle = {"FeaturesOfInterest(1)"};
     private static Map<String, String[]> TEST_DATA = new HashMap<>();
 
     static {
         // Other test topics
-        TEST_DATA.put("Foo", new String[]{"404", null, null, null});
-        TEST_DATA.put("/", new String[]{"200", null, null, null});
-        TEST_DATA.put("", new String[]{"200", null, null, null});
-        TEST_DATA.put(" ", new String[]{"200", null, null, null});
-        TEST_DATA.put("#", new String[]{"200", null, null, null});
+        TEST_DATA.put("Foo", new String[]{"404", null, null});
+        TEST_DATA.put("/", new String[]{"200", null, null});
+        TEST_DATA.put("", new String[]{"200", null, null});
+        TEST_DATA.put(" ", new String[]{"200", null, null});
+        TEST_DATA.put("#", new String[]{"200", null, null});
     }
 
     protected static SensorThingsPlus pMdl;
@@ -104,9 +105,8 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             pMdl = new SensorThingsPlus();
             serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
 
-            // Create a Party for testing
-            if (SERVER_PROPERTIES.get("plugins.staplus.enable").equalsIgnoreCase("true"))
-                createParty();
+            // Create FeatureOfInterest for testing
+            createFeatureOfInterest();
         } catch (MalformedURLException ex) {
             LOGGER.error("Failed to create URL", ex);
         } catch (IOException ex) {
@@ -124,34 +124,34 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
      */
     @Test
     public void testDiscoveryByPath() throws IOException {
-        for (String entity : "Datastreams,Sensors,Things,Locations,HistoricalLocations,Observations,FeaturesOfInterest,MultiDatastreams,Parties,Licenses,Campaigns,ObservationGroups,Relations".split(",")) {
-            //testDiscoveryByPath(entity, "GET");
-            //testDiscoveryByPath(entity, "HEAD");
+        for (String entity : "Datastreams,Sensors,Things,Locations,HistoricalLocations,Observations,FeaturesOfInterest,MultiDatastreams".split(",")) {
+            testDiscoveryByPath(entity, "GET");
+            testDiscoveryByPath(entity, "HEAD");
         }
         for (String entity : rootTopicSingle) {
-            //testDiscoveryByPath(entity, "GET");
-            //testDiscoveryByPath(entity, "HEAD");
+            testDiscoveryByPath(entity, "GET");
+            testDiscoveryByPath(entity, "HEAD");
         }
         for (String entity : rootTopicsOthers) {
             testDiscoveryByPath(entity, "GET");
-            //testDiscoveryByPath(entity, "HEAD");
+            testDiscoveryByPath(entity, "HEAD");
         }
 
     }
 
-    public void createParty() throws IOException {
-        LOGGER.info("createParty()");
-        String request = String.format("{\"description\": \"The opportunistic pirate by Robert Louis Stevenson\", \"displayName\": \"Long John Silver Citizen Scientist\", \"role\": \"individual\", \"authId\": \"%s\"}", "ff1045c2-a6de-31ad-8eb2-2be104fe27ea");
-        HttpPost httpPost = new HttpPost(serverSettings.getServiceUrl(version) + "/Parties");
+    public void createFeatureOfInterest() throws IOException {
+        LOGGER.info("createFeatureOfInterest()");
+        String request = "{\"@iot.id\":1,\"name\":\"Munich\",\"description\":\"A nice place on Earth\",\"encodingType\":\"application/geo+json\",\"feature\":{\"type\":\"Point\",\"coordinates\":[11.509234,48.110728]}}";
+        HttpPost httpPost = new HttpPost(serverSettings.getServiceUrl(version) + "/FeaturesOfInterest");
         HttpEntity stringEntity = new StringEntity(request, ContentType.APPLICATION_JSON);
         httpPost.setEntity(stringEntity);
 
         try (CloseableHttpResponse response = serviceSTAplus.execute(httpPost)) {
 
             if (response.getStatusLine().getStatusCode() == 201) {
-                Assertions.assertTrue(true, "Test Party created");
+                Assertions.assertTrue(true, "FeatureOfInterest created");
             } else {
-                fail(response, "Test Party creation failed");
+                fail(response, "FeatureOfInterest creation failed");
             }
         }
     }
@@ -193,7 +193,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.websub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
             String selfLink = linkHeaders.get("self");
             String helpLink = linkHeaders.get("help");
-            Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code match");
+            Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code for method=" + method + " url=" + url + ": actual=" + response.getStatusLine().getStatusCode() + " expected=" + expectedStatusCode);
             if (TEST_DATA.get(rootTopic)[1] == null) {
                 Assertions.assertTrue(selfLink == null, "requested entityset is not in rootTopic => there is no Link rel=self");
             } else {
@@ -202,7 +202,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             }
             if (TEST_DATA.get(rootTopic)[2] != null) {
                 // Testing help-Link
-                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + TEST_DATA.get(rootTopic)[2];
+                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + TEST_DATA.get(rootTopic)[2];
                 Assertions.assertTrue(helpLink.equalsIgnoreCase(expectedHelpLink), "help-link match");
             }
         }
@@ -224,26 +224,20 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             // Test configuration
             SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams,Sensors,Things,Locations,HistoricalLocations,Observations,FeaturesOfInterest,MultiDatastreams,Parties,Licenses,Campaigns,ObservationGroups,Relations");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null});
-            TEST_DATA.put("Sensors", new String[]{"200", "Sensors", null, null});
-            TEST_DATA.put("Things", new String[]{"200", "Things", null, null});
-            TEST_DATA.put("Locations", new String[]{"200", "Locations", null, null});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", "HistoricalLocations", null, null});
-            TEST_DATA.put("Observations", new String[]{"200", "Observations", null, null});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", "FeaturesOfInterest", null, null});
+            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null});
+            TEST_DATA.put("Sensors", new String[]{"200", "Sensors", null});
+            TEST_DATA.put("Things", new String[]{"200", "Things", null});
+            TEST_DATA.put("Locations", new String[]{"200", "Locations", null});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", "HistoricalLocations", null});
+            TEST_DATA.put("Observations", new String[]{"200", "Observations", null});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", "FeaturesOfInterest", null});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", "Parties", null, null});
-            TEST_DATA.put("Licenses", new String[]{"200", "Licenses", null, null});
-            TEST_DATA.put("Campaigns", new String[]{"200", "Campaigns", null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", "ObservationGroups", null, null});
-            TEST_DATA.put("Relations", new String[]{"200", "Relations", null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null});
+            // Single Entity
+            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", "FeaturesOfInterest(1)", null});
+
         }
 
         public DiscoveryPathTestsAll() {
@@ -251,145 +245,12 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         }
     }
 
-    public static class DiscoveryPathTestSTA00 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
-        }
-
-        public DiscoveryPathTestSTA00() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTA01 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-        }
-
-        public DiscoveryPathTestSTA01() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTA10 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
-        }
-
-        public DiscoveryPathTestSTA10() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTA11 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", "Datastreams", null, null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-        }
-
-        public DiscoveryPathTestSTA11() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestMD00 extends DiscoveryPathTests {
+    public static class DiscoveryPathTestMD0 extends DiscoveryPathTests {
 
         static {
             // Test configuration
             SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
             TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
@@ -400,62 +261,22 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
+            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null});
+            // Single Entity
+            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
-        public DiscoveryPathTestMD00() {
+        public DiscoveryPathTestMD0() {
             super(ServerVersion.v_1_1);
         }
     }
 
-    public static class DiscoveryPathTestMD01 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-        }
-
-        public DiscoveryPathTestMD01() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestMD10 extends DiscoveryPathTests {
+    public static class DiscoveryPathTestMD1 extends DiscoveryPathTests {
 
         static {
             // Test configuration
             SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
 
             // Core Data Model entities
             TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
@@ -466,184 +287,14 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
             // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
+            TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null});
+            // Single Entity
+            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
         }
 
-        public DiscoveryPathTestMD10() {
+        public DiscoveryPathTestMD1() {
             super(ServerVersion.v_1_1);
         }
     }
 
-    public static class DiscoveryPathTestMD11 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-        }
-
-        public DiscoveryPathTestMD11() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTAplus00 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Parties");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
-        }
-
-        public DiscoveryPathTestSTAplus00() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTAplus01 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Parties");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null, null});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", "Parties", null, null});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
-        }
-
-        public DiscoveryPathTestSTAplus01() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTAplus10 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Parties");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"404", null, null, null});
-            TEST_DATA.put("Licenses", new String[]{"404", null, null, null});
-            TEST_DATA.put("Campaigns", new String[]{"404", null, null, null});
-            TEST_DATA.put("ObservationGroups", new String[]{"404", null, null, null});
-            TEST_DATA.put("Relations", new String[]{"404", null, null, null});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"404", null, null, null});
-        }
-
-        public DiscoveryPathTestSTAplus10() {
-            super(ServerVersion.v_1_1);
-        }
-    }
-
-    public static class DiscoveryPathTestSTAplus11 extends DiscoveryPathTests {
-
-        static {
-            // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Parties");
-            SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.staplus.enable", "true");
-
-            // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // MultiDatastream
-            TEST_DATA.put("MultiDatastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // STAplus Data Model entities
-            TEST_DATA.put("Parties", new String[]{"200", "Parties", null, null});
-            TEST_DATA.put("Licenses", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Campaigns", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("ObservationGroups", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Relations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            // Single entity test
-            TEST_DATA.put("Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", new String[]{"200", "Parties('ff1045c2-a6de-31ad-8eb2-2be104fe27ea')", null, null});
-        }
-
-        public DiscoveryPathTestSTAplus11() {
-            super(ServerVersion.v_1_1);
-        }
-    }
 }

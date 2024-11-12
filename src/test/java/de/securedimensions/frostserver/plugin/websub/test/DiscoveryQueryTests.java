@@ -64,15 +64,12 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
     private static final long serialVersionUID = 1639739965;
     private static final Map<String, String> SERVER_PROPERTIES = new LinkedHashMap<>();
     static {
-        SERVER_PROPERTIES.put("mqtt.Enabled", "false");
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
         SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Observations");
         SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help");
-        SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-        SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
 
     private static Map<String, String[]> TEST_DATA = new HashMap<>();
@@ -145,7 +142,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
     }
 
     private void testDiscoveryWithQuery(String key, String method) throws IOException {
-        LOGGER.info("  testDiscoveryByPath " + method + " (%s)".formatted(key));
+        LOGGER.info("  testDiscoveryWithQuery " + method + " (%s)".formatted(key));
 
         String url = serverSettings.getServiceUrl(version) + "/" + key;
 

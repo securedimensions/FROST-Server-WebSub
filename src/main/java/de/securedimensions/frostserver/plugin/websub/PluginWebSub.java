@@ -65,8 +65,6 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
 
     private static final String REQUIREMENT_WEBSUB = "https://github.com/securedimensions/FROST-Server-WebSub";
 
-    private static final String WEBSUB = "WebSub";
-
     private CoreSettings settings;
     @DefaultValueBoolean(false)
     private boolean enabled;
@@ -130,8 +128,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
                 RequestTypeUtils.READ,
                 RequestTypeUtils.UPDATE_ALL,
                 RequestTypeUtils.UPDATE_CHANGES,
-                RequestTypeUtils.UPDATE_CHANGESET,
-                WEBSUB);
+                RequestTypeUtils.UPDATE_CHANGESET);
     }
 
     @Override
@@ -140,6 +137,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
             case DELETE:
                 return RequestTypeUtils.DELETE;
 
+            case HEAD:
             case GET:
                 if (path.isEmpty() || "/".equals(path)) {
                     return RequestTypeUtils.GET_CAPABILITIES;
@@ -157,9 +155,6 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
 
             case PUT:
                 return RequestTypeUtils.UPDATE_ALL;
-
-            case HEAD:
-                return WEBSUB;
 
             default:
                 return null;
@@ -182,9 +177,16 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
             expandPresent = odataQuery.contains("expand=");
         }
 
-        EntityType et = settings.getModelRegistry().getEntityTypeForName(entityName);
+        Iterator<EntityType> eti = settings.getModelRegistry().getEntityTypes().iterator();
         // True if the entityName is from the data model entities that are activated
-        boolean validEntity = (et != null);
+        boolean validEntity = false;
+        while (eti.hasNext()) {
+            EntityType et = eti.next();
+            if (entityName.startsWith(et.plural)) {
+                validEntity = true;
+                break;
+            }
+        }
 
         if (allowOdataQuery && (request.getUrlQuery() != null)) {
             // URL compliant for the odata query values:  "," -> "%2C" and " " -> "%20"
@@ -199,23 +201,6 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
             case UPDATE_CHANGESET:
                 request.addParameterIfAbsent(REQUEST_PARAM_FORMAT, FORMAT_NAME_EMPTY);
                 return mainService.execute(request, response);
-            case WEBSUB:
-                if (validEntity && isValidEntity(rootTopics, entityName)) {
-                    if (!allowOdataQuery && queryPresent) {
-                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_QUERY_DISABLED));
-                    } else if (allowOdataQuery && (!allowFilter && filterPresent)) {
-                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_FILTER_DISABLED));
-                    } else if (allowOdataQuery && (!allowExpand && expandPresent)) {
-                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_EXPAND_DISABLED));
-                    } else {
-                        linkHeaders.add("<%s>; rel=\"self\"".formatted(topicUrl));
-                    }
-                } else if (!validEntity) {
-                    linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_INVALID));
-                } else if (!isValidEntity(rootTopics, entityName)) {
-                    linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_NOT_ALLOWED));
-                }
-                return response.addHeaders("Link", linkHeaders);
             case READ:
                 if (validEntity) {
                     if (isValidEntity(rootTopics, entityName)) {

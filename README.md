@@ -43,7 +43,7 @@ Clone this directory via `git clone https://github.com/securedimensions/FROST-Se
 Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${project.version}` file to the appropriate FROST-Server directory and apply the WebSub specific settings below. Then restart FROST-Server.
 
 ## Deployment with FROST-Server
-Use `git clone -b v2.4.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.4.x` to create the FROST-Server directory structure.
+Use `git clone -b v2.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.5.x` to create the FROST-Server directory structure.
 
 Then cd `FROST-Server/Plugins` and `git clone https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
@@ -131,7 +131,6 @@ Four different test cases are defined depending on the root topic:
 
 * `STA` = {`Datastreams`, `Sensors`, `Things`, `Locations`, `HistoricalLocations`, `Observations`, `FeaturesOfInterest`} is concerned with the discovery tests for each entity from the STA data model
 * `MultiDatatream` = {`MultiDatastream`} is concerned with the discovery tests for `MulitDatastreams`
-* `STAplus` = {`Parties`, `Licenses`, `Campaigns`, `ObservationGroups`, `Relations`} is concerned with the discovery tests for each entity from the STAplus data model
 * `Other` = {`Foo`, `/`, ``, ` `, `#`} is concerned with the discovery tests for some other entities that are not one of the above
 
 For each request to a valid entityset that is not included in `plugins.websub.rootTopics`, the plugin does not return a `rel="self"` Link header.
@@ -139,32 +138,21 @@ Instead, the plugin returns the `rel="help"` header to inform about the reason f
 
 For any service request where root entity does not exist, the service returns a HTTP status code 404. Such a response naturally does not contain any WebSub link headers.
 
-| Class                       | plugins.websub.rootTopics | multiDatastream.enable | staplus.enable | Expected Result |
-|:----------------------------|:-------------------------:|:----------------------:|:--------------:|:----------------|
-| DiscoveryPathTestSTA00      |    `Datastreams`[^10]     |         false          |     false      | [^20]           |
-| DiscoveryPathTestSTA01      |    `Datastreams`[^10]     |         false          |      true      | [^20]           |
-| DiscoveryPathTestSTA10      |    `Datastreams`[^10]     |          true          |     false      | [^20]           |
-| DiscoveryPathTestSTA11      |    `Datastreams`[^10]     |          true          |      true      | [^20]           |
-| DiscoveryPathTestMD00       |  `MultiDatastream`[^11]   |         false          |     false      | [^21]           |
-| DiscoveryPathTestMD01       |  `MultiDatastream`[^11]   |         false          |      true      | [^21]           |
-| DiscoveryPathTestMD10       |  `MultiDatastream`[^11]   |          true          |     false      | [^22]           |
-| DiscoveryPathTestMD11       |  `MultiDatastream`[^11]   |          true          |      true      | [^22]           |
-| DiscoveryPathTestSTAplus00  |      `Parties`[^12]       |         false          |     false      | [^23]           |
-| DiscoveryPathTestSTAplus01  |      `Parties`[^12]       |         false          |      true      | [^24]           |
-| DiscoveryPathTestSTAplus10  |      `Parties`[^12]       |          true          |     false      | [^23]           |
-| DiscoveryPathTestSTAplus11  |      `Parties`[^12]       |          true          |      true      | [^24]           |
+| Class                      | plugins.websub.rootTopics | multiDatastream.enable |  Expected Result |
+|:---------------------------|:-------------------------:|:----------------------:|::----------------|
+| DiscoveryPathTestSTA0      |    `Datastreams`[^10]     |         false          |[^11]             |
+| DiscoveryPathTestSTA1      |    `Datastreams`[^10]     |          true          |[^11]             |
+| DiscoveryPathTestMD0       |  `MultiDatastream`[^20]   |         false          |[^21]             |
+| DiscoveryPathTestMD1       |  `MultiDatastream`[^20]   |          true          |[^22]             |
 
 [^10]: any subset from entityset names valid for the STA data model
-[^11]: any subset from entityset names valid for the STAplus data model
-[^12]: any subset from entityset names valid for the STA MultiDatastream (only `MultiDatastreams`) 
+[^20]: any subset from entityset names valid for the STA MultiDatastream (only `MultiDatastreams`) 
 
-For each test class, the requests are made for all entityset names in {STA, STAplus, MultiDatastream}. Expected results are:
+For each test class, the requests are made for all entityset names in {STA, MultiDatastream}. Expected results are:
 
-[^20]: Only `topic` equals `Datastreams` returns `Link rel="self"` header
+[^11]: Only `topic` equals `Datastreams` returns `Link rel="self"` header
 [^21]: Response is HTTP status 404. => No `Link rel="self"` header returned
 [^22]: Only `topic` equals `MultiDatastreams` returns `Link rel="self"` header
-[^23]: Response is HTTP status 404. => No `Link rel="self"` header returned
-[^24]: Only `topic` equals `Party` returns `Link rel="self"` header
 
 For each test class, the requests are made for all entityset names in {Other} return HTTP status 404 and therefore no `Link rel="self"` header may be present.
 
