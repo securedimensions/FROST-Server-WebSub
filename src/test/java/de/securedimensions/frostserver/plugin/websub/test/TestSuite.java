@@ -36,7 +36,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     DiscoveryQueryTests.DiscoveryWithQuery00.class,
     DiscoveryQueryTests.DiscoveryWithQuery01.class,
     DiscoveryQueryTests.DiscoveryWithQuery10.class,
-    DiscoveryQueryTests.DiscoveryWithQuery11.class
+    DiscoveryQueryTests.DiscoveryWithQuery11.class,
+    LandingPageTests.LandingPageNoTopicsNoOdataDeniedTest.class,
+    LandingPageTests.LandingPageTopicObservationsDeniedTest.class,
+    LandingPageTests.LandingPageNoODataDeniedTest.class,
+    LandingPageTests.LandingPageODataExpandDeniedTest.class,
+    LandingPageTests.LandingPageODataFilterDeniedTest.class,
+    LandingPageTests.LandingPageODataExpandFilterDeniedTest.class
 })
 @Suite
 @Testcontainers

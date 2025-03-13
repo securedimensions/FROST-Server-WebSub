@@ -68,7 +68,6 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
         SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Observations");
         SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help");
     }
 
@@ -164,11 +163,11 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code match");
             if (TEST_DATA.get(key)[1] == null) {
                 // No self-link
-                Assertions.assertTrue(selfLink == null, "requested entityset is not in rootTopic => there is no Link rel=self");
+                Assertions.assertTrue(selfLink == null, "requested entityset is in deniedTopic => there is no Link rel=self");
             } else {
                 // Testing self-link
                 String expectedSelfLink = URLDecoder.decode(url).replaceAll(",", "%2C").replaceAll(" ", "%20");
-                Assertions.assertTrue(selfLink.equalsIgnoreCase(expectedSelfLink), "self-link match");
+                Assertions.assertTrue(expectedSelfLink.equalsIgnoreCase(selfLink), "self-link match");
             }
             if (TEST_DATA.get(key)[2] != null) {
                 String[] links = TEST_DATA.get(key)[2].split(",");

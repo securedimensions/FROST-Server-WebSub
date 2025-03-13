@@ -17,6 +17,8 @@
  */
 package de.securedimensions.frostserver.plugin.websub.test;
 
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.REQUIREMENT_WEBSUB;
+
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
@@ -38,6 +40,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,12 +69,9 @@ public abstract class ActivationTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
 
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Observations");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
-
-    static final Map<String, String> discoResult = new HashMap<>();
 
     protected static SensorThingsPlus pMdl;
     protected static SensorThingsService serviceSTAplus;
@@ -118,10 +119,18 @@ public abstract class ActivationTests extends AbstractTestClass {
         return result;
     }
 
+    protected boolean contains(JSONArray a, String s) {
+        for (int i = 0; i < a.length(); i++) {
+            if (a.getString(i).equalsIgnoreCase(s))
+                return true;
+        }
+        return false;
+    }
+
     @Test
     public void testActivation() throws IOException {
-        //testActivation("GET");
-        //testActivation("HEAD");
+        testActivation("GET");
+        testActivation("HEAD");
 
     }
 
@@ -169,6 +178,20 @@ public abstract class ActivationTests extends AbstractTestClass {
         public DisabledTest() {
             super(ServerVersion.v_1_1);
         }
+
+        @Test
+        public void testLandingPage() throws IOException {
+            String url = serverSettings.getServiceUrl(version);
+            HttpRequestBase http = new HttpGet(url.trim());
+
+            try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
+                JSONObject landingPage = new JSONObject(new String(response.getEntity().getContent().readAllBytes()));
+                LOGGER.debug("landingPage: ", landingPage);
+                JSONObject serverSettings = (JSONObject) landingPage.get("serverSettings");
+                JSONArray conformance = (JSONArray) serverSettings.get("conformance");
+                Assertions.assertTrue(this.contains(conformance, REQUIREMENT_WEBSUB) == false, "WebSub plugin disabled");
+            }
+        }
     }
 
     public static class EnabledTest extends ActivationTests {
@@ -180,6 +203,20 @@ public abstract class ActivationTests extends AbstractTestClass {
 
         public EnabledTest() {
             super(ServerVersion.v_1_1);
+        }
+
+        @Test
+        public void testLandingPage() throws IOException {
+            String url = serverSettings.getServiceUrl(version);
+            HttpRequestBase http = new HttpGet(url.trim());
+
+            try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
+                JSONObject landingPage = new JSONObject(new String(response.getEntity().getContent().readAllBytes()));
+                LOGGER.debug("landingPage: ", landingPage);
+                JSONObject serverSettings = (JSONObject) landingPage.get("serverSettings");
+                JSONArray conformance = (JSONArray) serverSettings.get("conformance");
+                Assertions.assertTrue(this.contains(conformance, REQUIREMENT_WEBSUB) == true, "WebSub plugin enabled");
+            }
         }
     }
 

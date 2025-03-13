@@ -35,6 +35,8 @@ import de.fraunhofer.iosb.ilt.frostserver.settings.annotation.DefaultValueBoolea
 import de.fraunhofer.iosb.ilt.frostserver.util.HttpMethod;
 import de.fraunhofer.iosb.ilt.frostserver.util.StringHelper;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,8 +47,8 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     @DefaultValueBoolean(false)
     public static final String TAG_ENABLE_WEBSUB = "websub.enable";
 
-    @DefaultValue("-")
-    public static final String TAG_ROOT_TOPICS = "websub.rootTopics";
+    @DefaultValue("")
+    public static final String TAG_TOPICS_DENIED = "websub.topicsDenied";
 
     @DefaultValueBoolean(false)
     public static final String TAG_ALLOW_ODATA_QUERY = "websub.enable.odataQuery";
@@ -61,9 +63,11 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     public static final String TAG_ERROR_ODATA_FILTER_DISABLED = "odataQueryFilterDisabled";
     public static final String TAG_ERROR_ODATA_EXPAND_DISABLED = "odataQueryExpandDisabled";
     public static final String TAG_ERROR_ENTITY_INVALID = "entityInvalid";
-    public static final String TAG_ERROR_ENTITY_NOT_ALLOWED = "entityNotAllowed";
+    public static final String TAG_ERROR_TOPIC_NOT_ALLOWED = "topicNotAllowed";
 
-    private static final String REQUIREMENT_WEBSUB = "https://github.com/securedimensions/FROST-Server-WebSub";
+    public static final String REQUIREMENT_WEBSUB = "https://github.com/securedimensions/FROST-Server-WebSub";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PluginWebSub.class.getName());
 
     private CoreSettings settings;
     @DefaultValueBoolean(false)
@@ -76,7 +80,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
 
     private String hubUrl;
 
-    private ArrayList<String> rootTopics;
+    private ArrayList<String> deniedTopics;
     private String rootUrl, helpUrl;
 
     @Override
@@ -96,7 +100,12 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         helpUrl = (helpUrl.endsWith("/")) ? helpUrl.substring(0, helpUrl.length() - 1) : helpUrl;
         helpUrl = helpUrl + "#";
         hubUrl = pluginSettings.get(TAG_HUB_URL, getClass());
-        rootTopics = new ArrayList<>(Arrays.asList(pluginSettings.get(TAG_ROOT_TOPICS, "-").split(",")));
+        String dt = pluginSettings.get(TAG_TOPICS_DENIED, getClass());
+        if (dt.equalsIgnoreCase(""))
+            deniedTopics = new ArrayList<>(0);
+        else
+            deniedTopics = new ArrayList<>(Arrays.asList(dt.split(",")));
+
         if (enabled) {
             settings.getPluginManager().registerPlugin(this);
         }
@@ -165,6 +174,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     public ServiceResponse execute(Service mainService, ServiceRequest request, ServiceResponse response) {
         String urlPath = request.getUrlPath();
         String entityName = (urlPath.equalsIgnoreCase("")) ? urlPath : urlPath.substring(1);
+        String topic = request.getVersion() + "/" + entityName;
         String topicUrl = rootUrl + "/" + request.getVersion() + request.getUrlPath();
         String odataQuery = request.getUrlQuery();
         boolean queryPresent = odataQuery != null;
@@ -203,7 +213,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
                 return mainService.execute(request, response);
             case READ:
                 if (validEntity) {
-                    if (isValidEntity(rootTopics, entityName)) {
+                    if (isTopicDenied(deniedTopics, topic) == false) {
                         if (!allowOdataQuery && queryPresent) {
                             linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ODATA_QUERY_DISABLED));
                         } else if (allowOdataQuery && (!allowFilter && filterPresent) && (!allowExpand && expandPresent)) {
@@ -217,7 +227,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
                             linkHeaders.add("<%s>; rel=\"self\"".formatted(topicUrl));
                         }
                     } else {
-                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_NOT_ALLOWED));
+                        linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_TOPIC_NOT_ALLOWED));
                     }
                 }
             default:
@@ -235,17 +245,42 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
             // Nothing to add to.
             return;
         }
-        Set<String> extensionList = (Set<String>) serverSettings.get(Service.KEY_CONFORMANCE_LIST);
-        extensionList.add(REQUIREMENT_WEBSUB);
+        Set<String> conformanceList = (Set<String>) serverSettings.get(Service.KEY_CONFORMANCE_LIST);
+        conformanceList.add(REQUIREMENT_WEBSUB);
+
+        Map<String, Object> webSub = new HashMap<>();
+        webSub.put("topics_denied", deniedTopics);
+
+        if (allowOdataQuery == false) {
+            // all ODATA options
+            // https://docs.ogc.org/is/15-078r6/15-078r6.html §9.3.1
+            webSub.put("odata_denied", new String[]{"$filter", "$count", "$orderby", "$skip", "$top", "$expand", "$select"});
+        } else {
+            if ((!allowExpand) && (!allowFilter)) {
+                webSub.put("odata_denied", new String[]{"$expand", "$filter"});
+            } else if (!allowExpand) {
+                webSub.put("odata_denied", new String[]{"$expand"});
+            } else if (!allowFilter) {
+                webSub.put("odata_denied", new String[]{"$filter"});
+            } else {
+                webSub.put("odata_denied", new ArrayList<>(0));
+            }
+
+        }
+        serverSettings.put(REQUIREMENT_WEBSUB, webSub);
+        LOGGER.debug("serverSettings: ", serverSettings);
     }
 
-    private boolean isValidEntity(ArrayList<String> validEntities, String entity) {
+    private boolean isTopicDenied(ArrayList<String> deniedEntities, String entity) {
 
-        if ((validEntities == null) || (entity == null))
+        if (deniedEntities == null)
             return false;
 
-        for (String e : validEntities) {
-            if (entity.startsWith(e))
+        if (entity == null)
+            return false;
+
+        for (String e : deniedEntities) {
+            if (entity.equalsIgnoreCase(e))
                 return true;
         }
         return false;

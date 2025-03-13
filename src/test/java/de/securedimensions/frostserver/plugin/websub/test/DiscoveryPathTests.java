@@ -17,7 +17,7 @@
  */
 package de.securedimensions.frostserver.plugin.websub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ENTITY_NOT_ALLOWED;
+import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_TOPIC_NOT_ALLOWED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -77,7 +77,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
     private static Map<String, String[]> TEST_DATA = new HashMap<>();
 
     static {
-        // Other test topics
+        // Other test entities
         TEST_DATA.put("Foo", new String[]{"404", null, null});
         TEST_DATA.put("/", new String[]{"200", null, null});
         TEST_DATA.put("", new String[]{"200", null, null});
@@ -173,10 +173,10 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         return result;
     }
 
-    private void testDiscoveryByPath(String rootTopic, String method) throws IOException {
-        LOGGER.info("  testDiscoveryByPath " + method + " (%s)".formatted(rootTopic));
+    private void testDiscoveryByPath(String entity, String method) throws IOException {
+        LOGGER.info("  testDiscoveryByPath " + method + " (%s)".formatted(entity));
 
-        String url = serverSettings.getServiceUrl(version) + "/" + rootTopic;
+        String url = serverSettings.getServiceUrl(version) + "/" + entity;
 
         HttpRequestBase http = null;
         if (method.equalsIgnoreCase("GET"))
@@ -185,7 +185,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             http = new HttpHead(url.trim());
 
         try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
-            int expectedStatusCode = Integer.parseInt(TEST_DATA.get(rootTopic)[0]);
+            int expectedStatusCode = Integer.parseInt(TEST_DATA.get(entity)[0]);
 
             Map<String, String> linkHeaders = getLinkHeaders(response.getHeaders("Link"));
             String hubLink = linkHeaders.get("hub");
@@ -194,15 +194,15 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             String selfLink = linkHeaders.get("self");
             String helpLink = linkHeaders.get("help");
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code for method=" + method + " url=" + url + ": actual=" + response.getStatusLine().getStatusCode() + " expected=" + expectedStatusCode);
-            if (TEST_DATA.get(rootTopic)[1] == null) {
-                Assertions.assertTrue(selfLink == null, "requested entityset is not in rootTopic => there is no Link rel=self");
+            if (TEST_DATA.get(entity)[1] == null) {
+                Assertions.assertTrue(selfLink == null, "requested entityset is in denied entity => there is no Link rel=self");
             } else {
-                String expectedSelfLink = serverSettings.getServiceUrl(version) + "/" + TEST_DATA.get(rootTopic)[1];
-                Assertions.assertTrue(selfLink.equalsIgnoreCase(expectedSelfLink), "self-link match");
+                String expectedSelfLink = serverSettings.getServiceUrl(version) + "/" + TEST_DATA.get(entity)[1];
+                Assertions.assertTrue(expectedSelfLink.equalsIgnoreCase(selfLink), "self-link match");
             }
-            if (TEST_DATA.get(rootTopic)[2] != null) {
+            if (TEST_DATA.get(entity)[2] != null) {
                 // Testing help-Link
-                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + TEST_DATA.get(rootTopic)[2];
+                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + TEST_DATA.get(entity)[2];
                 Assertions.assertTrue(helpLink.equalsIgnoreCase(expectedHelpLink), "help-link match");
             }
         }
@@ -222,7 +222,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "Datastreams,Sensors,Things,Locations,HistoricalLocations,Observations,FeaturesOfInterest,MultiDatastreams,Parties,Licenses,Campaigns,ObservationGroups,Relations");
+            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
 
             // Core Data Model entities
@@ -249,21 +249,21 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
+            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"404", null, null});
             // Single Entity
-            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD0() {
@@ -275,21 +275,21 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.rootTopics", "MultiDatastreams");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
+            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
 
             // Core Data Model entities
-            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
-            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Sensors", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Things", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Locations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("HistoricalLocations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("Observations", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
             // MultiDatastream
             TEST_DATA.put("MultiDatastreams", new String[]{"200", "MultiDatastreams", null});
             // Single Entity
-            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_ENTITY_NOT_ALLOWED});
+            TEST_DATA.put("FeaturesOfInterest(1)", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
         }
 
         public DiscoveryPathTestMD1() {
