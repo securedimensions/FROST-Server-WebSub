@@ -12,10 +12,10 @@ The following tags are defined for the `Link rel="help"` header:
 ### #entityInvalid
 The MQTT topic, resulting from the request URL is invalid.
 
-<a id="entityNotAllowed"></a>
-### #entityNotAllowed
+<a id="topicNotAllowed"></a>
+### #topicNotAllowed
 
-The MQTT topic, resulting from the request URL is on a disallowed entity.
+The MQTT topic, resulting from the request URL is disallowed for subscription.
 
 <a id="odataQueryDisabled"></a>
 ### #odataQueryDisabled
