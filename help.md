@@ -10,7 +10,8 @@ The following tags are defined for the `Link rel="help"` header:
 
 <a id="entityInvalid"></a>
 ### #entityInvalid
-The MQTT topic, resulting from the request URL is invalid.
+
+The entity, resulting from the request URL is invalid.
 
 <a id="topicNotAllowed"></a>
 ### #topicNotAllowed
