@@ -36,7 +36,7 @@ The plugin returns a `Link` header in the following format `<URL to error>#<iden
 The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
-The deployment of the WebSub plugin can be integrated into [version 2.5.3 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.5.x). 
+The deployment of the WebSub plugin can be integrated into [version 2.5.8 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.5.x). 
 You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
 
 ### Build and deploy WebSub standalone
