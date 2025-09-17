@@ -26,6 +26,7 @@ import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FO
 
 import de.fraunhofer.iosb.ilt.frostserver.model.EntityType;
 import de.fraunhofer.iosb.ilt.frostserver.path.Version;
+import de.fraunhofer.iosb.ilt.frostserver.plugin.coremodel.PluginCoreService;
 import de.fraunhofer.iosb.ilt.frostserver.service.*;
 import de.fraunhofer.iosb.ilt.frostserver.settings.ConfigDefaults;
 import de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings;
@@ -120,7 +121,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
 
     @Override
     public Collection<Version> getVersions() {
-        return Arrays.asList(Version.V_1_0, Version.V_1_1);
+        return Arrays.asList(PluginCoreService.V_1_1);
     }
 
     @Override
@@ -132,12 +133,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     public Collection<String> getRequestTypes() {
         return Arrays.asList(
                 RequestTypeUtils.GET_CAPABILITIES,
-                RequestTypeUtils.CREATE,
-                RequestTypeUtils.DELETE,
-                RequestTypeUtils.READ,
-                RequestTypeUtils.UPDATE_ALL,
-                RequestTypeUtils.UPDATE_CHANGES,
-                RequestTypeUtils.UPDATE_CHANGESET);
+                RequestTypeUtils.READ);
     }
 
     @Override

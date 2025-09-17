@@ -36,19 +36,19 @@ The plugin returns a `Link` header in the following format `<URL to error>#<iden
 The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
-The deployment of the WebSub plugin can be integrated into [version 2.5.8 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.5.x). 
+The deployment of the WebSub plugin can be integrated into [version 2.6.0 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.6.x). 
 You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
 
 ### Build and deploy WebSub standalone
-Clone this directory via `git clone -b FROST-Server.v2.5.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
+Clone this directory via `git clone -b FROST-Server.v2.6.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
 To run the tests at the end of the `mvn install` you need to have Docker running.
 
 Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${project.version}.jar` file to the appropriate FROST-Server directory and apply the WebSub specific settings below. Then restart FROST-Server.
 
 ## Deployment with FROST-Server
-Use `git clone -b v2.5.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.5.x` to create the FROST-Server directory structure.
+Use `git clone -b v2.6.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.6.x` to create the FROST-Server directory structure.
 
-Then cd `FROST-Server.v2.5.x/Plugins` and `git clone -b FROST-Server.v2.5.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
+Then cd `FROST-Server.v2.6.x/Plugins` and `git clone -b FROST-Server.v2.6.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
 Add the `WebSub` plugin to the `FROST-Server/Plugins/pom.xml`.
 

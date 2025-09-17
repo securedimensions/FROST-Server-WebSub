@@ -67,14 +67,13 @@ public abstract class ActivationTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
 
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
-
+        SERVER_PROPERTIES.put("plugins.websub.enable", "true");
         SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-        SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
 
     protected static SensorThingsPlus pMdl;
-    protected static SensorThingsService serviceSTAplus;
+    protected static SensorThingsService serviceWebSub;
 
     public ActivationTests(ServerVersion version) {
         super(version, SERVER_PROPERTIES);
@@ -91,7 +90,7 @@ public abstract class ActivationTests extends AbstractTestClass {
         try {
             sMdl = new SensorThingsV11Sensing();
             pMdl = new SensorThingsPlus();
-            serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
+            serviceWebSub = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
         } catch (MalformedURLException ex) {
             LOGGER.error("Failed to create URL", ex);
         }
@@ -143,7 +142,7 @@ public abstract class ActivationTests extends AbstractTestClass {
         else
             http = new HttpHead(url.trim());
 
-        try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
+        try (CloseableHttpResponse response = serviceWebSub.execute(http)) {
             Map<String, String> linkHeaders = getLinkHeaders(response.getHeaders("Link"));
             String hubLink = linkHeaders.get("hub");
             String selfLink = linkHeaders.get("self");
@@ -184,7 +183,7 @@ public abstract class ActivationTests extends AbstractTestClass {
             String url = serverSettings.getServiceUrl(version);
             HttpRequestBase http = new HttpGet(url.trim());
 
-            try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
+            try (CloseableHttpResponse response = serviceWebSub.execute(http)) {
                 JSONObject landingPage = new JSONObject(new String(response.getEntity().getContent().readAllBytes()));
                 LOGGER.debug("landingPage: ", landingPage);
                 JSONObject serverSettings = (JSONObject) landingPage.get("serverSettings");
@@ -210,7 +209,7 @@ public abstract class ActivationTests extends AbstractTestClass {
             String url = serverSettings.getServiceUrl(version);
             HttpRequestBase http = new HttpGet(url.trim());
 
-            try (CloseableHttpResponse response = serviceSTAplus.execute(http)) {
+            try (CloseableHttpResponse response = serviceWebSub.execute(http)) {
                 JSONObject landingPage = new JSONObject(new String(response.getEntity().getContent().readAllBytes()));
                 LOGGER.debug("landingPage: ", landingPage);
                 JSONObject serverSettings = (JSONObject) landingPage.get("serverSettings");
