@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.websub;
+package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.fraunhofer.iosb.ilt.frostserver.service.PluginManager.PATH_WILDCARD;
 import static de.fraunhofer.iosb.ilt.frostserver.service.PluginResultFormat.FORMAT_NAME_EMPTY;
@@ -45,19 +45,19 @@ import org.slf4j.LoggerFactory;
 public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginService {
 
     @DefaultValueBoolean(false)
-    public static final String TAG_ENABLE_WEBSUB = "websub.enable";
+    public static final String TAG_ENABLE_WEBSUB = "stawebsub.enable";
 
     @DefaultValue("")
-    public static final String TAG_TOPICS_DENIED = "websub.topicsDenied";
+    public static final String TAG_TOPICS_DENIED = "stawebsub.topicsDenied";
 
     @DefaultValueBoolean(false)
-    public static final String TAG_ALLOW_ODATA_QUERY = "websub.enable.odataQuery";
+    public static final String TAG_ALLOW_ODATA_QUERY = "stawebsub.enable.odataQuery";
 
     @DefaultValue("")
-    public static final String TAG_HUB_URL = "websub.hubUrl";
+    public static final String TAG_HUB_URL = "stawebsub.hubUrl";
 
     @DefaultValue("/error")
-    public static final String TAG_HELP_URL = "websub.helpUrl";
+    public static final String TAG_HELP_URL = "stawebsub.helpUrl";
 
     public static final String TAG_ERROR_ODATA_QUERY_DISABLED = "odataQueryDisabled";
     public static final String TAG_ERROR_ODATA_FILTER_DISABLED = "odataQueryFilterDisabled";
@@ -120,7 +120,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
 
     @Override
     public Collection<Version> getVersions() {
-        return Arrays.asList(Version.V_1_0, Version.V_1_1);
+        return this.settings.getPluginManager().getVersions().values();
     }
 
     @Override

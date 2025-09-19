@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.websub.test;
+package de.securedimensions.frostserver.plugin.stawebsub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.REQUIREMENT_WEBSUB;
+import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -60,9 +60,9 @@ public abstract class LandingPageTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("mqtt.Enabled", "false");
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
 
-        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
+        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub");
 
-        SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
@@ -127,8 +127,8 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
         }
@@ -157,11 +157,11 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
-            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "v1.1/Observations");
+            SERVER_PROPERTIES.put("plugins.stawebsub.topicsDenied", "v1.1/Observations");
         }
 
         public LandingPageTopicObservationsDeniedTest() {
@@ -185,8 +185,8 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "false");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "false");
         }
 
         public LandingPageNoODataDeniedTest() {
@@ -212,8 +212,8 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "true");
         }
@@ -241,8 +241,8 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
         }
@@ -270,8 +270,8 @@ public abstract class LandingPageTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
         }

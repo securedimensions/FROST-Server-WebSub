@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.websub.test;
+package de.securedimensions.frostserver.plugin.stawebsub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_TOPIC_NOT_ALLOWED;
+import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_TOPIC_NOT_ALLOWED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -66,10 +66,10 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.coreModel.idType", "LONG");
         SERVER_PROPERTIES.put("mqtt.Enabled", "false");
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
-        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
-        SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-        SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help.html");
+        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub");
+        SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.stawebsub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help.html");
     }
 
     private static final String[] rootTopicsOthers = {"Foo", "/", "", " ", "#"};
@@ -190,7 +190,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             Map<String, String> linkHeaders = getLinkHeaders(response.getHeaders("Link"));
             String hubLink = linkHeaders.get("hub");
             Assertions.assertTrue(hubLink != null, "hub not null");
-            Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.websub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
+            Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.stawebsub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
             String selfLink = linkHeaders.get("self");
             String helpLink = linkHeaders.get("help");
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code for method=" + method + " url=" + url + ": actual=" + response.getStatusLine().getStatusCode() + " expected=" + expectedStatusCode);
@@ -202,7 +202,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
             }
             if (TEST_DATA.get(entity)[2] != null) {
                 // Testing help-Link
-                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + TEST_DATA.get(entity)[2];
+                String expectedHelpLink = SERVER_PROPERTIES.get("plugins.stawebsub.helpUrl") + "#" + TEST_DATA.get(entity)[2];
                 Assertions.assertTrue(helpLink.equalsIgnoreCase(expectedHelpLink), "help-link match");
             }
         }
@@ -222,7 +222,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "");
+            SERVER_PROPERTIES.put("plugins.stawebsub.topicsDenied", "");
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
 
             // Core Data Model entities
@@ -250,7 +250,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         static {
             // Test configuration
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
-            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
+            SERVER_PROPERTIES.put("plugins.stawebsub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
 
             // Core Data Model entities
             TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});
@@ -276,7 +276,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         static {
             // Test configuration
             SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "true");
-            SERVER_PROPERTIES.put("plugins.websub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
+            SERVER_PROPERTIES.put("plugins.stawebsub.topicsDenied", "v1.1/Datastreams,v1.1/Sensors,v1.1/Things,v1.1/Locations,v1.1/HistoricalLocations,v1.1/Observations,v1.1/FeaturesOfInterest,v1.1/Parties,v1.1/Licenses,v1.1/Campaigns,v1.1/ObservationGroups,v1.1/Relations,v1.1/FeaturesOfInterest(1)");
 
             // Core Data Model entities
             TEST_DATA.put("Datastreams", new String[]{"200", null, TAG_ERROR_TOPIC_NOT_ALLOWED});

@@ -36,19 +36,19 @@ The plugin returns a `Link` header in the following format `<URL to error>#<iden
 The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
-The deployment of the WebSub plugin can be integrated into [version 2.5.8 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.5.x). 
+The deployment of the WebSub plugin can be integrated into [version 2.7.x of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.7.x). 
 You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
 
 ### Build and deploy WebSub standalone
-Clone this directory via `git clone -b FROST-Server.v2.5.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
+Clone this directory via `git clone -b FROST-Server.v2.7.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
 To run the tests at the end of the `mvn install` you need to have Docker running.
 
 Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${project.version}.jar` file to the appropriate FROST-Server directory and apply the WebSub specific settings below. Then restart FROST-Server.
 
 ## Deployment with FROST-Server
-Use `git clone -b v2.5.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.5.x` to create the FROST-Server directory structure.
+Use `git clone -b v2.7.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.7.x` to create the FROST-Server directory structure.
 
-Then cd `FROST-Server.v2.5.x/Plugins` and `git clone -b FROST-Server.v2.5.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
+Then cd `FROST-Server.v2.7.x/Plugins` and `git clone -b FROST-Server.v2.7.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
 Add the `WebSub` plugin to the `FROST-Server/Plugins/pom.xml`.
 
@@ -81,26 +81,26 @@ As described in the [FROST-Server Plugin documentation](https://fraunhoferiosb.g
 * **plugins.plugins:**
   A comma-separated list of class names, listing additional plugins to load.
 
-  Add the class `de.securedimensions.frostserver.plugin.websub.PluginWebSub` to have the plugin loaded
-* **plugins.websub.enable:**  
+  Add the class `de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub` to have the plugin loaded
+* **plugins.stawebsub.enable:**  
   Set to `true` to activate the WebSub plugin. Default: `false`.
 
 
 ### Configure Behavior
 
-* **plugins.websub.topicsDenied:**  
+* **plugins.stawebsub.topicsDenied:**  
   A comma separated list of MQTT topics that **can not** be used for subscription. E.g. `"v1.1/Datastreams(4711),v1.1/Observations"` would cause that no Link rel="self" header is returned for 
   requests that start with `http://localhost:8080/FROST-Server/v1.1/Datastreams(4711)` or `http://localhost:8080/FROST-Server/v1.1/Sensors` (assuming that `http://localhost:8080/FROST-Server/v1.1` is the service base URL). 
   A request to `http://localhost:8080/FROST-Server/v1.1/Observations` would return the self-link `link: <http://localhost:8080/FROST-Server/v1.1/Observations>; rel="self"`.
-* **plugins.websub.enable.odataQuery:**
+* **plugins.stawebsub.enable.odataQuery:**
   Set to `true` supports the discovery for topics that include an ODATA query. Default: `false`.
 * **mqtt.allowFilter:**
   This is a FROST-Server configuration directive. Set to `true` enables an MQTT to include the ODATA command `$filter`. Default: `true`.
 * **mqtt.allowExpand:**
   This is a FROST-Server configuration directive. Set to `true` enables an MQTT to include the ODATA command `$expand`. Default: `true`.
-* **plugins.websub.hubUrl:**
+* **plugins.stawebsub.hubUrl:**
   This is the URL to the WebSub Hub that functions as the Publisher.
-* **plugins.websub.helpUrl:**
+* **plugins.stawebsub.helpUrl:**
   This URL resolves to the help page.
 
 Because a SensorThings API service returns data in the JSON format only, this plugin returns the `Link` information as HTTP response headers.
@@ -119,11 +119,11 @@ the literal `HEAD` in the `http.cors.allowed.methods` configuration setting.
 
 The test cases need reflection the different WebSub plugin configuration options:
 
-* `plugins.websub.topicsDenied`: configures the not allowed MQTT topics
+* `plugins.stawebsub.topicsDenied`: configures the not allowed MQTT topics
   * E.g. for a STA service: `v1.1/Datastreams`, `v1.1/Datastreams(123)`, `v1.1/Things`
   * E.g. as per the STAplus data model: `v1.1/Parties`
   * E.g. if MultiDatastream is enabled: `v1.1/MultiDatastreams`
-* `plugins.websub.enable.odataQuery`: set to `true` configures whether the MQTT subscription may include the ODATA part - the query of a service request.
+* `plugins.stawebsub.enable.odataQuery`: set to `true` configures whether the MQTT subscription may include the ODATA part - the query of a service request.
 * `mqtt.allowFilter`: set to `true` allows that the ODATA query includes `$filter`
 * `mqtt.allowExpand`: set to `true` allows that the ODATA query includes `$expand`
 
@@ -137,12 +137,12 @@ Four different test cases are defined depending on the root topic:
 * `MultiDatatream` = {`MultiDatastream`} is concerned with the discovery tests for `MulitDatastreams`
 * `Other` = {`Foo`, `/`, ``, ` `, `#`} is concerned with the discovery tests for some other entities that are not one of the above
 
-For each request to a valid entityset which corresponding MQTT topic is not included in `plugins.websub.topicsDenied`, the plugin does return a `rel="self"` Link header.
+For each request to a valid entityset which corresponding MQTT topic is not included in `plugins.stawebsub.topicsDenied`, the plugin does return a `rel="self"` Link header.
 For any other request, the plugin returns the `rel="help"` header to inform about the reason for the missing self-link.
 
 For any service request where root entity does not exist, the service returns a HTTP status code 404. Such a response naturally does not contain any WebSub link headers.
 
-| Class                      | entity                    | plugins.websub.topicsDenied | multiDatastream.enable | Expected Result |
+| Class                      | entity                    | plugins.stawebsub.topicsDenied | multiDatastream.enable | Expected Result |
 |:---------------------------|:-------------------------:|:--------------------------:|::-----------------------|
 | DiscoveryPathTestSTA0      |    `Datastreams`[^10]     | `v1.1/Datastreams`         |         false           |[^11]            |
 | DiscoveryPathTestSTA1      |    `Datastreams`[^10]     | ``                         |          true           |[^11]            |
@@ -178,13 +178,13 @@ Each of these test cases have to be tested by starting a new SensorThings servic
 | DiscoveryWithQuery11  |  .../Observations?$expand=Datastream  |       true       |       true       | [^37]           |
 
 All test cases must return the `Link rel="hub"` header. In addition, the following Link header is returned:
-[^30]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
-[^31]: `Link  <plugins.websub.helpUrl#odataQueryExpandDisabled>; rel="help"`
-[^32]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
+[^30]: `Link  <plugins.stawebsub.helpUrl#odataQueryFilterDisabled>; rel="help"`
+[^31]: `Link  <plugins.stawebsub.helpUrl#odataQueryExpandDisabled>; rel="help"`
+[^32]: `Link  <plugins.stawebsub.helpUrl#odataQueryFilterDisabled>; rel="help"`
 [^33]: `Link  <...>; rel="self"`
 [^34]: `Link  <...>; rel="self"`
-[^35]: `Link  <plugins.websub.helpUrl#odataQueryExpandDisabled>; rel="help"`
-[^36]: `Link  <plugins.websub.helpUrl#odataQueryFilterDisabled>; rel="help"`
+[^35]: `Link  <plugins.stawebsub.helpUrl#odataQueryExpandDisabled>; rel="help"`
+[^36]: `Link  <plugins.stawebsub.helpUrl#odataQueryFilterDisabled>; rel="help"`
 [^37]: `Link  <...>; rel="self"`
 [^38]: `Link  <...>; rel="self"`
 

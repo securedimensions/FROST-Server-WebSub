@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.websub.test;
+package de.securedimensions.frostserver.plugin.stawebsub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.REQUIREMENT_WEBSUB;
+import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -66,9 +66,9 @@ public abstract class ActivationTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("mqtt.Enabled", "false");
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
 
-        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
+        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub");
 
-        SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
@@ -147,12 +147,12 @@ public abstract class ActivationTests extends AbstractTestClass {
             Map<String, String> linkHeaders = getLinkHeaders(response.getHeaders("Link"));
             String hubLink = linkHeaders.get("hub");
             String selfLink = linkHeaders.get("self");
-            String enabled = SERVER_PROPERTIES.get("plugins.websub.enable");
+            String enabled = SERVER_PROPERTIES.get("plugins.stawebsub.enable");
             if (enabled.equalsIgnoreCase("false")) {
                 Assertions.assertTrue(hubLink == null, "WebSub plugin disabled - no rel=hub link");
                 Assertions.assertTrue(selfLink == null, "WebSub plugin disabled - no rel=self link");
             } else {
-                Assertions.assertTrue(hubLink.equalsIgnoreCase(SERVER_PROPERTIES.get("plugins.websub.hubUrl")), "Link rel=hub equals configured hub");
+                Assertions.assertTrue(hubLink.equalsIgnoreCase(SERVER_PROPERTIES.get("plugins.stawebsub.hubUrl")), "Link rel=hub equals configured hub");
                 Assertions.assertTrue(selfLink.equalsIgnoreCase(url));
             }
         }
@@ -172,7 +172,7 @@ public abstract class ActivationTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "false");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "false");
         }
 
         public DisabledTest() {
@@ -198,7 +198,7 @@ public abstract class ActivationTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
         }
 
         public EnabledTest() {

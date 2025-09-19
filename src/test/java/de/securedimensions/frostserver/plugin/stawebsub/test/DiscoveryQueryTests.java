@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.websub.test;
+package de.securedimensions.frostserver.plugin.stawebsub.test;
 
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_EXPAND_DISABLED;
-import static de.securedimensions.frostserver.plugin.websub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
+import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_ODATA_EXPAND_DISABLED;
+import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
@@ -65,10 +65,10 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
     private static final Map<String, String> SERVER_PROPERTIES = new LinkedHashMap<>();
     static {
         SERVER_PROPERTIES.put("mqtt.enabled", "false");
-        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.websub.PluginWebSub");
-        SERVER_PROPERTIES.put("plugins.websub.enable", "true");
-        SERVER_PROPERTIES.put("plugins.websub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
-        SERVER_PROPERTIES.put("plugins.websub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help");
+        SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub");
+        SERVER_PROPERTIES.put("plugins.stawebsub.enable", "true");
+        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.stawebsub.helpUrl", "https://github.com/securedimensions/FROST-Server-WebSub/help");
     }
 
     private static Map<String, String[]> TEST_DATA = new HashMap<>();
@@ -157,7 +157,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             Map<String, String> linkHeaders = getLinkHeaders(response.getHeaders("Link"));
             String hubLink = linkHeaders.get("hub");
             Assertions.assertTrue(hubLink != null, "hub not null");
-            Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.websub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
+            Assertions.assertTrue(SERVER_PROPERTIES.get("plugins.stawebsub.hubUrl").equalsIgnoreCase(hubLink), "hub match");
             String selfLink = linkHeaders.get("self");
             String helpLink = linkHeaders.get("help");
             Assertions.assertTrue(response.getStatusLine().getStatusCode() == expectedStatusCode, "response status code match");
@@ -172,7 +172,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
             if (TEST_DATA.get(key)[2] != null) {
                 String[] links = TEST_DATA.get(key)[2].split(",");
                 for (int ix = 0; ix < links.length; ix++) {
-                    links[ix] = SERVER_PROPERTIES.get("plugins.websub.helpUrl") + "#" + links[ix];
+                    links[ix] = SERVER_PROPERTIES.get("plugins.stawebsub.helpUrl") + "#" + links[ix];
                 }
                 for (String link : links)
                     Assertions.assertTrue(Arrays.asList(links).contains(link), "help-link match");
@@ -194,7 +194,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
 
@@ -212,7 +212,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "false");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
 
@@ -230,7 +230,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "false");
 
@@ -248,7 +248,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
 
         static {
             // Test configuration
-            SERVER_PROPERTIES.put("plugins.websub.enable.odataQuery", "true");
+            SERVER_PROPERTIES.put("plugins.stawebsub.enable.odataQuery", "true");
             SERVER_PROPERTIES.put("mqtt.allowFilter", "true");
             SERVER_PROPERTIES.put("mqtt.allowExpand", "true");
 
