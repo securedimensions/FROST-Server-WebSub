@@ -36,19 +36,19 @@ The plugin returns a `Link` header in the following format `<URL to error>#<iden
 The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
-The deployment of the WebSub plugin can be integrated into [version 2.7.x of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.7.x). 
+The deployment of the WebSub plugin can be integrated into [version 2.7.2 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.7.2). 
 You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
 
 ### Build and deploy WebSub standalone
-Clone this directory via `git clone -b FROST-Server.v2.7.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
+Clone this directory via `git clone -b FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
 To run the tests at the end of the `mvn install` you need to have Docker running.
 
 Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${project.version}.jar` file to the appropriate FROST-Server directory and apply the WebSub specific settings below. Then restart FROST-Server.
 
 ## Deployment with FROST-Server
-Use `git clone -b v2.7.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.7.x` to create the FROST-Server directory structure.
+Use `git clone -b v2.7.2 https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.7.2` to create the FROST-Server directory structure.
 
-Then cd `FROST-Server.v2.7.x/Plugins` and `git clone -b FROST-Server.v2.7.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
+Then cd `FROST-Server.v2.7.2/Plugins` and `git clone -b FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
 Add the `WebSub` plugin to the `FROST-Server/Plugins/pom.xml`.
 
@@ -188,3 +188,75 @@ All test cases must return the `Link rel="hub"` header. In addition, the followi
 [^37]: `Link  <...>; rel="self"`
 [^38]: `Link  <...>; rel="self"`
 
+### TestSuite execution results
+
+The `OGC STA-WebSub Extension — Conformance Class Discovery` executable Test Suite produced the following output:
+
+#### T1 [req-landing-page-discovery] Landing page returns STA v1.1 root page with conf URI<br>
+✔ GET root page returns HTTP 200 with STA v1.1 compliant body (4.066989ms)<br>
+✔ Root page conformance array includes the STA-WebSub discovery URI (2.438187ms)<br>
+✔ T1 [req-landing-page-discovery] Landing page returns STA v1.1 root page with conf URI (7.184655ms)<br>
+#### T2 [req-landing-page-topics] Root page advertises topics_denied<br>
+✔ GET root page returns 2xx (3.654797ms)<br>
+✔ serverSettings[CONF_URI] exists and contains topics_denied JSON array (2.641671ms)<br>
+✔ Each topics_denied value follows the SERVICE_VERSION/RESOURCE_PATH pattern (2.712769ms)<br>
+✔ T2 [req-landing-page-topics] Root page advertises topics_denied (9.475001ms)<br>
+#### T3 [req-landing-page-odata] Root page advertises odata_denied<br>
+✔ GET root page returns 2xx (2.507618ms)<br>
+✔ serverSettings[CONF_URI] exists and contains odata_denied JSON array (2.667889ms)<br>
+✔ T3 [req-landing-page-odata] Root page advertises odata_denied (5.478474ms)<br>
+#### T4 [req-http-methods] HTTP GET is accepted and returns hub link header<br>
+✔ GET topic URL returns 2xx and includes Link rel="hub" (5.789713ms)<br>
+✔ T4 [req-http-methods] HTTP GET is accepted and returns hub link header (6.079183ms)<br>
+#### T5 [req-http-methods] HTTP HEAD is accepted and returns hub link header<br>
+✔ HEAD topic URL returns 2xx and includes Link rel="hub" (5.014729ms)<br>
+✔ T5 [req-http-methods] HTTP HEAD is accepted and returns hub link header (5.198658ms)<br>
+#### T6 [req-link-hub] Both HEAD and GET return Link rel="hub" for any topic URL<br>
+✔ HEAD topic URL includes Link rel="hub" (2.887432ms)<br>
+✔ GET topic URL includes Link rel="hub" (6.306817ms)<br>
+✔ T6 [req-link-hub] Both HEAD and GET return Link rel="hub" for any topic URL (9.424366ms)<br>
+#### T7 [req-link-self] Allowed topic URLs return Link rel="hub" and rel="self"<br>
+✔ §14.2.1, §14.2.2, §14.2.3 allowed URLs return hub and self (HEAD and GET) (37.545346ms)<br>
+✔ T7 [req-link-self] Allowed topic URLs return Link rel="hub" and rel="self" (37.695786ms)<br>
+#### T8 [req-link-help] Denied topic URLs return hub+help, not self<br>
+✔ URL denied via topics_denied returns hub+help, not self (49.132815ms)<br>
+✔ URL denied via odata_denied returns hub+help, not self (23.401877ms)<br>
+✔ T8 [req-link-help] Denied topic URLs return hub+help, not self (72.773321ms)<br>
+#### T9 [req-odata-support] ODATA-extended topic URLs return STA v1.1 compliant responses<br>
+﹣ §14.2.1 collection URL + ODATA option returns STA v1.1 compliant response (0.26934ms) # All known ODATA options are denied — cannot construct a valid §14.2.1 + ODATA URL<br>
+﹣ §14.2.2 entity URL + ODATA option returns STA v1.1 compliant response (0.133859ms) # No allowed non-$expand ODATA options available for entity URL test<br>
+✔ T9 [req-odata-support] ODATA-extended topic URLs return STA v1.1 compliant responses (0.549422ms)<br>
+#### T10 [req-odata-discovery] Root page advertises STA-WebSub support via conf URI and odata_denied<br>
+✔ HEAD root page returns 2xx (5.322072ms)<br>
+✔ Root page conformance section includes conf URI (4.464519ms)<br>
+✔ serverSettings[CONF_URI] contains odata_denied as a JSON array (3.33771ms)<br>
+✔ T10 [req-odata-discovery] Root page advertises STA-WebSub support via conf URI and odata_denied (13.426442ms)<br>
+#### T11 [req-odata-blacklisting] URLs with denied ODATA options return hub+help, not self<br>
+✔ Each odata_denied option yields hub+help and no self (HEAD and GET) (75.136325ms)<br>
+✔ T11 [req-odata-blacklisting] URLs with denied ODATA options return hub+help, not self (75.440715ms)<br>
+#### T12 [req-odata-blacklisting] URLs with allowed ODATA options return self (HEAD and GET)<br>
+﹣ Allowed ODATA options yield Link rel="self" that includes the request URL (0.355025ms) # All known ODATA options are denied — no allowed options to test<br>
+✔ T12 [req-odata-blacklisting] URLs with allowed ODATA options return self (HEAD and GET) (0.51844ms)<br>
+#### T13 [req-topics-discovery] Root page advertises STA-WebSub support via conf URI and topics_denied<br>
+✔ HEAD root page returns 2xx (4.262281ms)<br>
+✔ Root page conformance section includes conf URI (2.879737ms)<br>
+✔ serverSettings[CONF_URI] contains topics_denied as a JSON array (2.556688ms)<br>
+✔ Each topics_denied value follows SERVICE_VERSION/RESOURCE_PATH pattern (2.944775ms)<br>
+✔ T13 [req-topics-discovery] Root page advertises STA-WebSub support via conf URI and topics_denied (12.949687ms)<br>
+#### T14 [req-topics-blacklisting] Denied topic URLs return hub+help, not self<br>
+✔ URL constructed from topics_denied returns hub+help and no self (HEAD and GET) (6.938202ms)<br>
+✔ T14 [req-topics-blacklisting] Denied topic URLs return hub+help, not self (7.051132ms)<br>
+#### T15 [req-topics-blacklisting] Allowed topic URLs return self, not help<br>
+✔ Multiple allowed topic URLs return Link rel="self" and no rel="help" (HEAD and GET) (21.445639ms)<br>
+✔ T15 [req-topics-blacklisting] Allowed topic URLs return self, not help (21.571309ms)<br>
+✔ OGC STA-WebSub Extension — Conformance Class Discovery (381.766452ms)<br>
+
+#### Result summary
+ℹ tests 27<br>
+ℹ suites 16<br>
+ℹ pass 24<br>
+ℹ fail 0<br>
+ℹ cancelled 0<br>
+ℹ skipped 3<br>
+ℹ todo 0<br>
+ℹ duration_ms 564.464735<br>
