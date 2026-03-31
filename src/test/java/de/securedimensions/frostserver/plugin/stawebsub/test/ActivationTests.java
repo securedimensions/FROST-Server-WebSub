@@ -20,13 +20,12 @@ package de.securedimensions.frostserver.plugin.stawebsub.test;
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
+import de.fraunhofer.iosb.ilt.frostclient.models.DataModel;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -68,12 +67,11 @@ public abstract class ActivationTests extends AbstractTestClass {
 
         SERVER_PROPERTIES.put("plugins.plugins", "de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub");
 
-        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "https://websub-hub.citiobs.secd.eu/api/subscriptions");
+        SERVER_PROPERTIES.put("plugins.stawebsub.hubUrl", "http://hub.local");
         SERVER_PROPERTIES.put("plugins.multiDatastream.enable", "false");
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
 
-    protected static SensorThingsPlus pMdl;
     protected static SensorThingsService serviceSTAplus;
 
     public ActivationTests(ServerVersion version) {
@@ -88,18 +86,13 @@ public abstract class ActivationTests extends AbstractTestClass {
     @Override
     protected void setUpVersion() {
         LOGGER.info("Setting up for version {}.", version.urlPart);
-        try {
-            sMdl = new SensorThingsV11Sensing();
-            pMdl = new SensorThingsPlus();
-            serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
-        } catch (MalformedURLException ex) {
-            LOGGER.error("Failed to create URL", ex);
-        }
-    }
 
-    @Override
-    protected void tearDownVersion() {
-        LOGGER.info("tearing down");
+        serviceSTAplus = new SensorThingsService(
+                new DataModel[]{
+                    new SensorThingsV11Sensing(),
+                    new SensorThingsPlus()
+                });
+
     }
 
     public Map<String, String> getLinkHeaders(Header links[]) {

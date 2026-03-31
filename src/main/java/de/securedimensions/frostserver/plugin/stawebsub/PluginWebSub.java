@@ -18,12 +18,12 @@
 package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.fraunhofer.iosb.ilt.frostserver.service.PluginManager.PATH_WILDCARD;
-import static de.fraunhofer.iosb.ilt.frostserver.service.PluginResultFormat.FORMAT_NAME_EMPTY;
 import static de.fraunhofer.iosb.ilt.frostserver.service.RequestTypeUtils.*;
 import static de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings.TAG_SERVICE_ROOT_URL;
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.CONTENT_TYPE_APPLICATION_JSONPATCH;
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FORMAT;
 
+import de.fraunhofer.iosb.ilt.frostserver.formatter.ResultFormatter;
 import de.fraunhofer.iosb.ilt.frostserver.model.EntityType;
 import de.fraunhofer.iosb.ilt.frostserver.path.Version;
 import de.fraunhofer.iosb.ilt.frostserver.service.*;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author securedimensions
  */
-public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginService {
+public class PluginWebSub implements PluginResultFormat, PluginRootDocument, ConfigDefaults, PluginService {
 
     @DefaultValueBoolean(false)
     public static final String TAG_ENABLE_WEBSUB = "stawebsub.enable";
@@ -65,7 +65,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     public static final String TAG_ERROR_ENTITY_INVALID = "entityInvalid";
     public static final String TAG_ERROR_TOPIC_NOT_ALLOWED = "topicNotAllowed";
 
-    public static final String REQUIREMENT_WEBSUB = "https://github.com/securedimensions/FROST-Server-WebSub";
+    public static final String REQUIREMENT_WEBSUB = "https://www.opengis.net/spec/sensorthings-websub/1.0/conf/discovery";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginWebSub.class.getName());
 
@@ -81,6 +81,13 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     private String hubUrl;
 
     private ArrayList<String> deniedTopics;
+
+    private ArrayList<String> deniedOdata;
+
+    Map<String, Object> serverSettings;
+
+    Map<String, Object> webSub;
+
     private String rootUrl, helpUrl;
 
     @Override
@@ -91,6 +98,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         if (!enabled) {
             return InitResult.INIT_OK;
         }
+
         allowOdataQuery = pluginSettings.getBoolean(TAG_ALLOW_ODATA_QUERY, getClass());
         allowFilter = settings.getMqttSettings().isAllowMqttFilter();
         allowExpand = settings.getMqttSettings().isAllowMqttExpand();
@@ -100,9 +108,11 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         helpUrl = (helpUrl.endsWith("/")) ? helpUrl.substring(0, helpUrl.length() - 1) : helpUrl;
         helpUrl = helpUrl + "#";
         hubUrl = pluginSettings.get(TAG_HUB_URL, getClass());
+        webSub = new HashMap<>();
+        deniedOdata = new ArrayList<>();
         String dt = pluginSettings.get(TAG_TOPICS_DENIED, getClass());
         if (dt.equalsIgnoreCase(""))
-            deniedTopics = new ArrayList<>(0);
+            deniedTopics = new ArrayList<>();
         else
             deniedTopics = new ArrayList<>(Arrays.asList(dt.split(",")));
 
@@ -121,6 +131,16 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     @Override
     public Collection<Version> getVersions() {
         return this.settings.getPluginManager().getVersions().values();
+    }
+
+    @Override
+    public Collection<String> getFormatNames() {
+        return Arrays.asList(FORMAT_NAME_DEFAULT);
+    }
+
+    @Override
+    public ResultFormatter getResultFormatter(String format) {
+        return new ResultFormatterRootPage();
     }
 
     @Override
@@ -173,7 +193,7 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
     @Override
     public ServiceResponse execute(Service mainService, ServiceRequest request, ServiceResponse response) {
         String urlPath = request.getUrlPath();
-        String entityName = (urlPath.equalsIgnoreCase("")) ? urlPath : urlPath.substring(1);
+        String entityName = (urlPath.isEmpty()) ? urlPath : urlPath.substring(1);
         String topic = request.getVersion() + "/" + entityName;
         String topicUrl = rootUrl + "/" + request.getVersion() + request.getUrlPath();
         String odataQuery = request.getUrlQuery();
@@ -248,7 +268,6 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
         Set<String> conformanceList = (Set<String>) serverSettings.get(Service.KEY_CONFORMANCE_LIST);
         conformanceList.add(REQUIREMENT_WEBSUB);
 
-        Map<String, Object> webSub = new HashMap<>();
         webSub.put("topics_denied", deniedTopics);
 
         if (allowOdataQuery == false) {
@@ -263,12 +282,12 @@ public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginS
             } else if (!allowFilter) {
                 webSub.put("odata_denied", new String[]{"$filter"});
             } else {
-                webSub.put("odata_denied", new ArrayList<>(0));
+                webSub.put("odata_denied", deniedOdata);
             }
 
         }
         serverSettings.put(REQUIREMENT_WEBSUB, webSub);
-        LOGGER.debug("serverSettings: ", serverSettings);
+        LOGGER.debug("serverSettings: {}", serverSettings);
     }
 
     private boolean isTopicDenied(ArrayList<String> deniedEntities, String entity) {

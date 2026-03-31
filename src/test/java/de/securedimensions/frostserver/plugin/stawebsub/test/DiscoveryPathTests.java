@@ -20,13 +20,12 @@ package de.securedimensions.frostserver.plugin.stawebsub.test;
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_TOPIC_NOT_ALLOWED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
+import de.fraunhofer.iosb.ilt.frostclient.models.DataModel;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -85,7 +84,6 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         TEST_DATA.put("#", new String[]{"200", null, null});
     }
 
-    protected static SensorThingsPlus pMdl;
     protected static SensorThingsService serviceSTAplus;
 
     public DiscoveryPathTests(ServerVersion version) {
@@ -100,23 +98,13 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
     @Override
     protected void setUpVersion() {
         LOGGER.info("Setting up for version {}.", version.urlPart);
-        try {
-            sMdl = new SensorThingsV11Sensing();
-            pMdl = new SensorThingsPlus();
-            serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
 
-            // Create FeatureOfInterest for testing
-            createFeatureOfInterest();
-        } catch (MalformedURLException ex) {
-            LOGGER.error("Failed to create URL", ex);
-        } catch (IOException ex) {
-            LOGGER.error("Failed to create URL", ex);
-        }
-    }
+        serviceSTAplus = new SensorThingsService(
+                new DataModel[]{
+                    new SensorThingsV11Sensing(),
+                    new SensorThingsPlus()
+                });
 
-    @Override
-    protected void tearDownVersion() {
-        LOGGER.info("tearing down");
     }
 
     /*

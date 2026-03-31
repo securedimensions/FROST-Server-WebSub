@@ -20,13 +20,12 @@ package de.securedimensions.frostserver.plugin.stawebsub.test;
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
+import de.fraunhofer.iosb.ilt.frostclient.models.DataModel;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -67,7 +66,6 @@ public abstract class LandingPageTests extends AbstractTestClass {
         SERVER_PROPERTIES.put("plugins.staplus.enable", "false");
     }
 
-    protected static SensorThingsPlus pMdl;
     protected static SensorThingsService serviceSTAplus;
 
     public LandingPageTests(ServerVersion version) {
@@ -82,18 +80,13 @@ public abstract class LandingPageTests extends AbstractTestClass {
     @Override
     protected void setUpVersion() {
         LOGGER.info("Setting up for version {}.", version.urlPart);
-        try {
-            sMdl = new SensorThingsV11Sensing();
-            pMdl = new SensorThingsPlus();
-            serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
-        } catch (MalformedURLException ex) {
-            LOGGER.error("Failed to create URL", ex);
-        }
-    }
 
-    @Override
-    protected void tearDownVersion() {
-        LOGGER.info("tearing down");
+        serviceSTAplus = new SensorThingsService(
+                new DataModel[]{
+                    new SensorThingsV11Sensing(),
+                    new SensorThingsPlus()
+                });
+
     }
 
     protected JSONObject getLandingPage() throws IOException {

@@ -21,13 +21,12 @@ import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
 
 import de.fraunhofer.iosb.ilt.frostclient.SensorThingsService;
+import de.fraunhofer.iosb.ilt.frostclient.models.DataModel;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsPlus;
 import de.fraunhofer.iosb.ilt.frostclient.models.SensorThingsV11Sensing;
 import de.fraunhofer.iosb.ilt.statests.AbstractTestClass;
 import de.fraunhofer.iosb.ilt.statests.ServerVersion;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
@@ -80,7 +79,6 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         TEST_DATA.put("Observations?" + URLEncoder.encode("$orderBy=phenomenonTime asc"), new String[]{"200", "Observations?$orderBy=phenomenonTime%20asc", null, null});
         TEST_DATA.put("Observations?" + URLEncoder.encode("$select=result,phenomenonTime&$orderBy=phenomenonTime asc"), new String[]{"200", "Observations?$select=result%2CphenomenonTime&$orderBy=phenomenonTime%20asc", null, null});
     }
-    protected static SensorThingsPlus pMdl;
     protected static SensorThingsService serviceSTAplus;
 
     public DiscoveryQueryTests(ServerVersion version) {
@@ -95,18 +93,13 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
     @Override
     protected void setUpVersion() {
         LOGGER.info("Setting up for version {}.", version.urlPart);
-        try {
-            sMdl = new SensorThingsV11Sensing();
-            pMdl = new SensorThingsPlus();
-            serviceSTAplus = new SensorThingsService(sMdl, pMdl).setBaseUrl(new URL(serverSettings.getServiceUrl(version))).init();
-        } catch (MalformedURLException ex) {
-            LOGGER.error("Failed to create URL", ex);
-        }
-    }
 
-    @Override
-    protected void tearDownVersion() {
-        LOGGER.info("tearing down");
+        serviceSTAplus = new SensorThingsService(
+                new DataModel[]{
+                    new SensorThingsV11Sensing(),
+                    new SensorThingsPlus()
+                });
+
     }
 
     /*
