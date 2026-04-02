@@ -48,7 +48,7 @@ Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${p
 ## Deployment with FROST-Server
 Use `git clone -b v2.7.2 https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.7.2` to create the FROST-Server directory structure.
 
-Then cd `FROST-Server.v2.7.2/Plugins` and `git clone -b FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
+Then cd `FROST-Server.v2.7.2/Plugins` and `git clone -b v1.0.0-FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
 Add the `WebSub` plugin to the `FROST-Server/Plugins/pom.xml`.
 
