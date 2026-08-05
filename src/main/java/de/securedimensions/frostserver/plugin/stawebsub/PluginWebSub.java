@@ -18,22 +18,25 @@
 package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.fraunhofer.iosb.ilt.frostserver.service.PluginManager.PATH_WILDCARD;
+import static de.fraunhofer.iosb.ilt.frostserver.service.PluginResultFormat.FORMAT_NAME_EMPTY;
 import static de.fraunhofer.iosb.ilt.frostserver.service.RequestTypeUtils.*;
 import static de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings.TAG_SERVICE_ROOT_URL;
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.CONTENT_TYPE_APPLICATION_JSONPATCH;
 import static de.fraunhofer.iosb.ilt.frostserver.util.Constants.REQUEST_PARAM_FORMAT;
 
-import de.fraunhofer.iosb.ilt.frostserver.formatter.ResultFormatter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import de.fraunhofer.iosb.ilt.frostserver.json.deserialize.JsonReaderDefault;
 import de.fraunhofer.iosb.ilt.frostserver.model.EntityType;
-import de.fraunhofer.iosb.ilt.frostserver.path.Version;
+import de.fraunhofer.iosb.ilt.frostserver.request.ServiceRequest;
+import de.fraunhofer.iosb.ilt.frostserver.request.Version;
 import de.fraunhofer.iosb.ilt.frostserver.service.*;
-import de.fraunhofer.iosb.ilt.frostserver.settings.ConfigDefaults;
 import de.fraunhofer.iosb.ilt.frostserver.settings.CoreSettings;
-import de.fraunhofer.iosb.ilt.frostserver.settings.Settings;
-import de.fraunhofer.iosb.ilt.frostserver.settings.annotation.DefaultValue;
-import de.fraunhofer.iosb.ilt.frostserver.settings.annotation.DefaultValueBoolean;
 import de.fraunhofer.iosb.ilt.frostserver.util.HttpMethod;
 import de.fraunhofer.iosb.ilt.frostserver.util.StringHelper;
+import de.fraunhofer.iosb.ilt.settings.ConfigDefaults;
+import de.fraunhofer.iosb.ilt.settings.Settings;
+import de.fraunhofer.iosb.ilt.settings.annotation.DefaultValue;
+import de.fraunhofer.iosb.ilt.settings.annotation.DefaultValueBoolean;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author securedimensions
  */
-public class PluginWebSub implements PluginResultFormat, PluginRootDocument, ConfigDefaults, PluginService {
+public class PluginWebSub implements PluginRootDocument, ConfigDefaults, PluginService {
 
     @DefaultValueBoolean(false)
     public static final String TAG_ENABLE_WEBSUB = "stawebsub.enable";
@@ -80,13 +83,11 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
 
     private String hubUrl;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private ArrayList<String> deniedTopics;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private ArrayList<String> deniedOdata;
-
-    Map<String, Object> serverSettings;
-
-    Map<String, Object> webSub;
 
     private String rootUrl, helpUrl;
 
@@ -108,7 +109,6 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
         helpUrl = (helpUrl.endsWith("/")) ? helpUrl.substring(0, helpUrl.length() - 1) : helpUrl;
         helpUrl = helpUrl + "#";
         hubUrl = pluginSettings.get(TAG_HUB_URL, getClass());
-        webSub = new HashMap<>();
         deniedOdata = new ArrayList<>();
         String dt = pluginSettings.get(TAG_TOPICS_DENIED, getClass());
         if (dt.equalsIgnoreCase(""))
@@ -134,16 +134,6 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
     }
 
     @Override
-    public Collection<String> getFormatNames() {
-        return Arrays.asList(FORMAT_NAME_DEFAULT);
-    }
-
-    @Override
-    public ResultFormatter getResultFormatter(String format) {
-        return new ResultFormatterRootPage();
-    }
-
-    @Override
     public Collection<String> getVersionedUrlPaths() {
         return List.of(PATH_WILDCARD);
     }
@@ -151,7 +141,6 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
     @Override
     public Collection<String> getRequestTypes() {
         return Arrays.asList(
-                RequestTypeUtils.GET_CAPABILITIES,
                 RequestTypeUtils.CREATE,
                 RequestTypeUtils.DELETE,
                 RequestTypeUtils.READ,
@@ -168,9 +157,9 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
 
             case HEAD:
             case GET:
-                if (path.isEmpty() || "/".equals(path)) {
-                    return RequestTypeUtils.GET_CAPABILITIES;
-                }
+                // FROST 2.8+: root document is handled as READ (Service.handleGet →
+                // handleGetCapabilities). Do not return a custom type here or the
+                // landing page never gets serverSettings / modifyServiceDocument.
                 return RequestTypeUtils.READ;
 
             case PATCH:
@@ -192,6 +181,10 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
 
     @Override
     public ServiceResponse execute(Service mainService, ServiceRequest request, ServiceResponse response) {
+        // Required when this plugin is the request-type handler (replaces PluginCoreService).
+        request.getContext().setJsonReader(new JsonReaderDefault(
+                request.getModelRegistry(), request.getVersion(), request.getUserPrincipal()));
+
         String urlPath = request.getUrlPath();
         String entityName = (urlPath.isEmpty()) ? urlPath : urlPath.substring(1);
         String topic = request.getVersion() + "/" + entityName;
@@ -225,13 +218,15 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
         ArrayList linkHeaders = new ArrayList<String>();
         linkHeaders.add("<%s>; rel=\"hub\"".formatted(hubUrl));
         switch (request.getRequestType()) {
-            case CREATE:
-            case UPDATE_ALL:
-            case UPDATE_CHANGES:
-            case UPDATE_CHANGESET:
-                request.addParameterIfAbsent(REQUEST_PARAM_FORMAT, FORMAT_NAME_EMPTY);
+            case CREATE, UPDATE_ALL, UPDATE_CHANGES, UPDATE_CHANGESET -> {
+                request.addParameter(REQUEST_PARAM_FORMAT, FORMAT_NAME_EMPTY);
                 return mainService.execute(request, response);
-            case READ:
+            }
+            case READ -> {
+                // Landing page: advertise hub only; Service builds the root document.
+                if (urlPath.isEmpty() || "/".equals(urlPath)) {
+                    return mainService.execute(request, response.addHeaders("Link", linkHeaders));
+                }
                 if (validEntity) {
                     if (isTopicDenied(deniedTopics, topic) == false) {
                         if (!allowOdataQuery && queryPresent) {
@@ -249,13 +244,13 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
                     } else {
                         linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_TOPIC_NOT_ALLOWED));
                     }
-                }
-            default:
-                if (!validEntity) {
+                } else {
                     linkHeaders.add("<%s>; rel=\"help\"".formatted(helpUrl + TAG_ERROR_ENTITY_INVALID));
                 }
-                return mainService.execute(request, response.addHeaders("Link", linkHeaders));
+
+            }
         }
+        return mainService.execute(request, response.addHeaders("Link", linkHeaders));
     }
 
     @Override
@@ -268,6 +263,7 @@ public class PluginWebSub implements PluginResultFormat, PluginRootDocument, Con
         Set<String> conformanceList = (Set<String>) serverSettings.get(Service.KEY_CONFORMANCE_LIST);
         conformanceList.add(REQUIREMENT_WEBSUB);
 
+        Map<String, Object> webSub = new HashMap();
         webSub.put("topics_denied", deniedTopics);
 
         if (allowOdataQuery == false) {

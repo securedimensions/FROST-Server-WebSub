@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.stawebsub.test;
+package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 
@@ -172,7 +172,7 @@ public abstract class ActivationTests extends AbstractTestClass {
         }
 
         public DisabledTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -198,7 +198,7 @@ public abstract class ActivationTests extends AbstractTestClass {
         }
 
         public EnabledTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test

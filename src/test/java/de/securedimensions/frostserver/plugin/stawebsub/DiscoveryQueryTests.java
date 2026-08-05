@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.stawebsub.test;
+package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_ODATA_EXPAND_DISABLED;
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_ODATA_FILTER_DISABLED;
@@ -202,7 +202,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         }
 
         public DiscoveryWithQuery00() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 
@@ -220,7 +220,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         }
 
         public DiscoveryWithQuery01() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         }
 
         public DiscoveryWithQuery10() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 
@@ -256,7 +256,7 @@ public abstract class DiscoveryQueryTests extends AbstractTestClass {
         }
 
         public DiscoveryWithQuery11() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 }

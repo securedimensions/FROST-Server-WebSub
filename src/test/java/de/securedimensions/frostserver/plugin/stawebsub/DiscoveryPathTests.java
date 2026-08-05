@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.stawebsub.test;
+package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.TAG_ERROR_TOPIC_NOT_ALLOWED;
 
@@ -237,7 +237,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         }
 
         public DiscoveryPathTestsAll() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 
@@ -263,7 +263,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         }
 
         public DiscoveryPathTestMD0() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 
@@ -289,7 +289,7 @@ public abstract class DiscoveryPathTests extends AbstractTestClass {
         }
 
         public DiscoveryPathTestMD1() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
     }
 

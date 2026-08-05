@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.securedimensions.frostserver.plugin.stawebsub.test;
+package de.securedimensions.frostserver.plugin.stawebsub;
 
 import static de.securedimensions.frostserver.plugin.stawebsub.PluginWebSub.REQUIREMENT_WEBSUB;
 import static org.junit.Assert.fail;
@@ -133,7 +133,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageNoTopicsNoOdataDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -168,7 +168,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageTopicObservationsDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -193,7 +193,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageNoODataDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -222,7 +222,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageODataExpandDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -251,7 +251,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageODataFilterDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test
@@ -280,7 +280,7 @@ public abstract class LandingPageTests extends AbstractTestClass {
         }
 
         public LandingPageODataExpandFilterDeniedTest() {
-            super(ServerVersion.v_1_1);
+            super(ServerVersion.V_1_1);
         }
 
         @Test

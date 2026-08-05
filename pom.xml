@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>de.fraunhofer.iosb.ilt.FROST-Server</groupId>
-        <artifactId>FROST-ServerParent</artifactId>
-        <version>2.7.2</version>
+        <artifactId>FROST-Server.Plugins</artifactId>
+        <version>2.8.1-SNAPSHOT</version>
     </parent>
     <groupId>de.securedimensions.FROST-Server</groupId>
     <artifactId>FROST-Server.Plugin.WebSub</artifactId>
@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>${version.org.json}</version>
+            <version>20260719</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -219,6 +219,15 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Testcontainers' jdbc:tc: TC_INITSCRIPT is resolved relative to this
+                         working directory as a literal file path (see pgInit.sql). -->
+                    <workingDirectory>${project.build.directory}</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>
