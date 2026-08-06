@@ -36,19 +36,19 @@ The plugin returns a `Link` header in the following format `<URL to error>#<iden
 The `<URL to the help>` points to the help page for the WebSub plugin and the `#identifier` value points to the applicable section of the help page.
 
 ## Deployment for FROST-Server
-The deployment of the WebSub plugin can be integrated into [version 2.7.2 of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.7.2). 
+The deployment of the WebSub plugin can be integrated into [version 2.8.x of FROST-Server](https://github.com/FraunhoferIOSB/FROST-Server/tree/v2.8.x). 
 You can follow the [FROST-Server documentation](https://fraunhoferiosb.github.io/FROST-Server/) to run your instance.
 
 ### Build and deploy WebSub standalone
-Clone this directory via `git clone -b v1.0.0-FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
+Clone this directory via `git clone -b v1.0.0-FROST-Server.v2.8.x https://github.com/securedimensions/FROST-Server-WebSub.git`. Then `cd FROST-Server-WebSub` and `mvn install`. 
 To run the tests at the end of the `mvn install` you need to have Docker running.
 
 Make sure you copy the `FROST-Server-${project.parent.version}.Plugin.WebSub-${project.version}.jar` file to the appropriate FROST-Server directory and apply the WebSub specific settings below. Then restart FROST-Server.
 
 ## Deployment with FROST-Server
-Use `git clone -b v2.7.2 https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.7.2` to create the FROST-Server directory structure.
+Use `git clone -b v2.8.x https://github.com/FraunhoferIOSB/FROST-Server.git FROST-Server.v2.8.x` to create the FROST-Server directory structure.
 
-Then cd `FROST-Server.v2.7.2/Plugins` and `git clone -b v1.0.0-FROST-Server.v2.7.2 https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
+Then cd `FROST-Server.v2.8.x/Plugins` and `git clone -b v1.0.0-FROST-Server.v2.8.x https://github.com/securedimensions/FROST-Server-WebSub.git WebSub`.
 
 Add the `WebSub` plugin to the `FROST-Server/Plugins/pom.xml`.
 
@@ -199,7 +199,7 @@ The `OGC STA-WebSub Extension — Conformance Class Discovery` executable Test S
 #### T2 [req-landing-page-topics] Root page advertises topics_denied<br>
 ✔ GET root page returns 2xx (3.654797ms)<br>
 ✔ serverSettings[CONF_URI] exists and contains topics_denied JSON array (2.641671ms)<br>
-✔ Each topics_denied value follows the SERVICE_VERSION/RESOURCE_PATH pattern (2.712769ms)<br>
+✔ Each topics_denied value follows the SERVICE_VERSION/RESOURCE_PATH pattern (2.8.x769ms)<br>
 ✔ T2 [req-landing-page-topics] Root page advertises topics_denied (9.475001ms)<br>
 #### T3 [req-landing-page-odata] Root page advertises odata_denied<br>
 ✔ GET root page returns 2xx (2.507618ms)<br>
